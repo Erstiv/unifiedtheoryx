@@ -41,14 +41,62 @@
 
         <div class="form-group">
             <label for="narrator_count">Narrators</label>
-            <select id="narrator_count" name="narrator_count">
+            <select id="narrator_count" name="narrator_count" onchange="toggleCastOptions()">
                 <option value="1" selected>1 (Monologue)</option>
                 <option value="2">2 (Host + Expert)</option>
-                <option value="3">3 (Host + Expert + Storyteller)</option>
+                <option value="3">3 (Host + Expert + The Everybody)</option>
             </select>
         </div>
     </div>
 
-    <button type="submit" class="btn btn-primary btn-lg">Create Topic</button>
+    <div id="cast-options" style="display: none;">
+        <h3 style="margin-top: 1rem; margin-bottom: 0.75rem;">Cast Settings</h3>
+        <p class="text-muted" style="margin-bottom: 1rem; font-size: 0.9rem;">
+            The AI will invent a specific Expert and Everybody character for each episode — complete with name, backstory, and personality. You just pick the gender for the script.
+        </p>
+        <div class="form-row" style="grid-template-columns: 1fr 1fr;">
+            <div class="form-group">
+                <label for="expert_gender">Expert</label>
+                <select id="expert_gender" name="expert_gender">
+                    <option value="any">Any / Surprise me</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+                <small class="text-muted">Could be a Nobel laureate or a suspiciously knowledgeable bartender</small>
+            </div>
+
+            <div id="everybody-group" class="form-group">
+                <label for="everybody_gender">The Everybody</label>
+                <select id="everybody_gender" name="everybody_gender">
+                    <option value="any">Any / Surprise me</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                </select>
+                <small class="text-muted">The host's mother, the expert's barber, your neighbor who "read something once"</small>
+            </div>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-lg" style="margin-top: 1rem;">Create Topic</button>
 </form>
+{% endblock %}
+{% block scripts %}
+<script>
+function toggleCastOptions() {
+    var count = document.getElementById('narrator_count').value;
+    var castOpts = document.getElementById('cast-options');
+    var everybodyGroup = document.getElementById('everybody-group');
+    if (count >= 2) {
+        castOpts.style.display = 'block';
+    } else {
+        castOpts.style.display = 'none';
+    }
+    // Show Everybody only for 3 narrators
+    if (count >= 3) {
+        everybodyGroup.style.display = 'block';
+    } else {
+        everybodyGroup.style.display = 'none';
+    }
+}
+</script>
 {% endblock %}

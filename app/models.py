@@ -94,6 +94,8 @@ class Topic(Base):
     page_count = Column(Integer, default=2)  # 1-3 pages
     script_minutes = Column(Integer, default=10)  # 8-12 minutes
     narrator_count = Column(Integer, default=1)  # 1-3 narrators
+    expert_gender = Column(String(20), default="any")  # "male", "female", "any"
+    everybody_gender = Column(String(20), default="any")  # "male", "female", "any"
     status = Column(SQLEnum(TopicStatus), default=TopicStatus.DRAFT)
     current_phase = Column(Integer, default=0)
     approved_tangents = Column(JSON)  # [{title, depth, description}, ...]

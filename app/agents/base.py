@@ -94,6 +94,12 @@ class BaseAgent:
             if topic.description:
                 sections.append(f"Notes: {topic.description}")
             sections.append(f"Target: {topic.page_count} page(s), {topic.script_minutes} minute script, {topic.narrator_count} narrator(s)")
+            if topic.narrator_count >= 2:
+                expert_g = getattr(topic, 'expert_gender', 'any') or 'any'
+                sections.append(f"Expert gender: {expert_g}")
+            if topic.narrator_count >= 3:
+                everybody_g = getattr(topic, 'everybody_gender', 'any') or 'any'
+                sections.append(f"Everybody gender: {everybody_g}")
             if topic.approved_tangents:
                 sections.append(f"Approved tangents: {json.dumps(topic.approved_tangents)}")
             sections.append("=== END TOPIC ===\n")

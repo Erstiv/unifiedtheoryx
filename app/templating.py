@@ -82,8 +82,27 @@ def _inline_format(text):
     return text
 
 
-# Register the filter
+def _extract_text(item):
+    """Extract display text from a value that might be a string, dict, or list."""
+    if isinstance(item, str):
+        return item
+    if isinstance(item, dict):
+        # Try common keys in priority order
+        for key in ("fact", "text", "description", "content", "title", "name",
+                     "headline", "reference", "finding", "event", "gap", "myth"):
+            if key in item:
+                return str(item[key])
+        # Fallback: join all string values
+        parts = [str(v) for v in item.values() if isinstance(v, (str, int, float))]
+        return " — ".join(parts) if parts else str(item)
+    if isinstance(item, list):
+        return ", ".join(_extract_text(i) for i in item)
+    return str(item)
+
+
+# Register filters
 _base.env.filters["markdown"] = lambda text: markupsafe.Markup(_md_to_html(text))
+_base.env.filters["extract_text"] = _extract_text
 
 
 _orig = _base.TemplateResponse

@@ -47,6 +47,8 @@ async def create_topic(
     page_count: int = Form(2),
     script_minutes: int = Form(10),
     narrator_count: int = Form(1),
+    expert_gender: str = Form("any"),
+    everybody_gender: str = Form("any"),
     db: Session = Depends(get_db),
 ):
     slug = _slugify(title)
@@ -61,6 +63,8 @@ async def create_topic(
         page_count=max(1, min(3, page_count)),
         script_minutes=max(8, min(12, script_minutes)),
         narrator_count=max(1, min(3, narrator_count)),
+        expert_gender=expert_gender if expert_gender in ("male", "female", "any") else "any",
+        everybody_gender=everybody_gender if everybody_gender in ("male", "female", "any") else "any",
     )
     db.add(topic)
     db.commit()
