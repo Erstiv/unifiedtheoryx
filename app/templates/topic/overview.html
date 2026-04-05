@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}{{ topic.title }} — The Grand Unified Theory of X{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>{{ topic.title }}</h1>
+    <div class="topic-meta-lg">
+        <span class="badge badge-{{ topic.status.value }}">{{ topic.status.value.replace('_', ' ').title() }}</span>
+        <span>{{ topic.page_count }} page{{ 's' if topic.page_count > 1 }} | {{ topic.script_minutes }} min | {{ topic.narrator_count }} narrator{{ 's' if topic.narrator_count > 1 }}</span>
+    </div>
+    {% if topic.description %}
+    <p class="topic-notes">{{ topic.description }}</p>
+    {% endif %}
+</div>
+
+<div class="pipeline-status">
+    <h2>Pipeline</h2>
+    <div class="phase-track">
+        <!-- Phase 1 -->
+        <div class="phase-block {% if topic.current_phase >= 1 %}phase-active{% endif %} {% if topic.status.value in ['paused_phase_1', 'paused_tangents'] %}phase-paused{% endif %}">
+            <div class="phase-num">1</div>
+            <div class="phase-label">Research</div>
+        </div>
+        <div class="phase-arrow">&rarr;</div>
+        <!-- Phase 2 -->
+        <div class="phase-block {% if topic.current_phase >= 2 %}phase-active{% endif %} {% if topic.status.value == 'paused_phase_2' %}phase-paused{% endif %}">
+            <div class="phase-num">2</div>
+            <div class="phase-label">Writing</div>
+        </div>
+        <div class="phase-arrow">&rarr;</div>
+        <!-- Phase 3 -->
+        <div class="phase-block {% if topic.current_phase >= 3 %}phase-active{% endif %} {% if topic.status.value == 'completed' %}phase-done{% endif %}">
+            <div class="phase-num">3</div>
+            <div class="phase-label">Polish</div>
+        </div>
+    </div>
+</div>
+
+<div class="actions-panel">
+    {% if topic.status.value == 'draft' %}
+    <form method="POST" action="/topic/{{ topic.id }}/run-phase/1">
+        <button type="submit" class="btn btn-primary btn-lg">Start Phase 1: Research</button>
+    </form>
+
+    {% elif topic.status.value == 'paused_phase_1' %}
+    <a href="/topic/{{ topic.id }}/review-outline" class="btn btn-primary btn-lg">Review Research & Select Tangents</a>
+
+    {% elif topic.status.value == 'paused_tangents' %}
+    <div class="status-message">
+        <div class="spinner"></div>
+        <span>Researching approved tangents...</span>
+    </div>
+    <a href="/topic/{{ topic.id }}/review-outline" class="btn">Check Progress</a>
+
+    {% elif topic.status.value == 'paused_phase_2' %}
+    <a href="/topic/{{ topic.id }}/review-drafts" class="btn btn-primary btn-lg">Review Drafts</a>
+
+    {% elif topic.status.value == 'running' %}
+    <div class="status-message">
+        <div class="spinner"></div>
+        <span>Pipeline running...</span>
+    </div>
+    {% if topic.pipeline_runs %}
+    <a href="/topic/{{ topic.id }}/run/{{ topic.pipeline_runs[0].id }}" class="btn">View Progress</a>
+    {% endif %}
+
+    {% elif topic.status.value == 'completed' %}
+    <a href="/topic/{{ topic.id }}/episode" class="btn btn-primary btn-lg">View Episode</a>
+    {% endif %}
+</div>
+
+{% if topic.pipeline_runs %}
+<div class="run-history">
+    <h3>Run History</h3>
+    <table class="data-table">
+        <thead>
+            <tr><th>Phase</th><th>Status</th><th>Agents</th><th>Started</th></tr>
+        </thead>
+        <tbody>
+        {% for run in topic.pipeline_runs %}
+            <tr>
+                <td>Phase {{ run.phase }}</td>
+                <td><span class="badge badge-{{ run.status.value }}">{{ run.status.value.replace('_', ' ').title() }}</span></td>
+                <td>{{ run.agents_to_run | length }} agents</td>
+                <td>{{ run.started_at.strftime('%b %d, %H:%M') if run.started_at else '—' }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% if is_admin %}
+<div class="danger-zone">
+    <h3>Admin</h3>
+    <form method="POST" action="/topic/{{ topic.id }}/delete" onsubmit="return confirm('Delete this topic and all its data? This cannot be undone.');">
+        <button type="submit" class="btn btn-danger">Delete Topic</button>
+    </form>
+</div>
+{% endif %}
+{% endblock %}

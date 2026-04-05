@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Episode Backlog — The Grand Unified Theory of X{% endblock %}
+{% block content %}
+<div class="section-header">
+    <h1>Episode Backlog</h1>
+</div>
+
+<form method="POST" action="/topic/0/add-idea" class="quick-add">
+    <input type="text" name="title" placeholder="Quick add: type a topic idea..." required class="input-inline">
+    <input type="text" name="description" placeholder="Notes (optional)" class="input-inline input-sm">
+    <button type="submit" class="btn btn-sm">Add</button>
+</form>
+
+{% if topics %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Topic</th>
+            <th>Status</th>
+            <th>Config</th>
+            <th>Created</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for topic in topics %}
+        <tr>
+            <td>
+                <a href="/topic/{{ topic.id }}"><strong>{{ topic.title }}</strong></a>
+                {% if topic.description %}
+                <br><small class="text-muted">{{ topic.description[:80] }}{% if topic.description|length > 80 %}...{% endif %}</small>
+                {% endif %}
+            </td>
+            <td><span class="badge badge-{{ topic.status.value }}">{{ topic.status.value.replace('_', ' ').title() }}</span></td>
+            <td>{{ topic.page_count }}p / {{ topic.script_minutes }}m / {{ topic.narrator_count }}n</td>
+            <td>{{ topic.created_at.strftime('%b %d') }}</td>
+            <td><a href="/topic/{{ topic.id }}" class="btn btn-sm">Open</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+    <p>Your backlog is empty. Add topic ideas above!</p>
+</div>
+{% endif %}
+{% endblock %}

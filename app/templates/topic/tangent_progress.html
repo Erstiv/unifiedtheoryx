@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Researching Tangents — {{ topic.title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Researching Tangents</h1>
+    <p>{{ topic.title }}</p>
+</div>
+
+<div class="status-panel" style="text-align: center; padding: 3rem;">
+    <div class="spinner" style="width: 40px; height: 40px; margin: 0 auto 1.5rem;"></div>
+    <h3>Diving deeper into your selected tangents...</h3>
+    <p class="text-muted">This usually takes 15-30 seconds.</p>
+    <div id="tangent-check" style="margin-top: 1rem;"></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+(function poll() {
+    fetch('/api/topic/{{ topic.id }}/tangent-status')
+        .then(r => r.json())
+        .then(data => {
+            if (data.done) {
+                window.location.href = '/topic/{{ topic.id }}/review-outline';
+            } else {
+                setTimeout(poll, 2000);
+            }
+        })
+        .catch(() => setTimeout(poll, 3000));
+})();
+</script>
+{% endblock %}

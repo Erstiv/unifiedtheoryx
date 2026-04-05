@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% block title %}Knowledge Base — The Grand Unified Theory of X{% endblock %}
+{% block content %}
+<div class="section-header">
+    <h1>Knowledge Base</h1>
+    <div class="scope-toggle">
+        <a href="/bible?scope=global" class="btn btn-sm {% if scope == 'global' %}btn-primary{% endif %}">Global (Voice & Style)</a>
+        <a href="/bible?scope=topic" class="btn btn-sm {% if scope == 'topic' %}btn-primary{% endif %}">Topic-Specific</a>
+    </div>
+</div>
+
+<!-- Add Entry Form -->
+<details class="add-entry-details">
+    <summary class="btn btn-sm" style="margin-bottom: 1rem;">+ Add Entry</summary>
+    <form method="POST" action="/bible/add" class="form-card" style="margin-bottom: 2rem;">
+        <input type="hidden" name="scope" value="{{ scope }}">
+        {% if topic_id %}<input type="hidden" name="topic_id" value="{{ topic_id }}">{% endif %}
+        <div class="form-row" style="grid-template-columns: 1fr 2fr;">
+            <div class="form-group">
+                <label>Category</label>
+                <select name="category">
+                    {% for cat in categories %}
+                    <option value="{{ cat }}">{{ cat.replace('_', ' ').title() }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Title</label>
+                <input type="text" name="title" required>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Content</label>
+            <textarea name="content" rows="4" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary">Add Entry</button>
+    </form>
+</details>
+
+{% if grouped %}
+{% for category, entries in grouped.items() %}
+<div class="bible-category">
+    <h2>{{ category }}</h2>
+    {% for entry in entries %}
+    <div class="bible-entry" id="entry-{{ entry.id }}">
+        <div class="entry-header">
+            <h4>{{ entry.title }}</h4>
+            <div class="entry-actions">
+                <button class="btn btn-sm" onclick="toggleEdit({{ entry.id }})">Edit</button>
+                <form method="POST" action="/bible/{{ entry.id }}/delete" style="display:inline;" onsubmit="return confirm('Delete this entry?');">
+                    <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+        <div class="entry-view-{{ entry.id }}">
+            <p>{{ entry.content }}</p>
+        </div>
+        <form method="POST" action="/bible/{{ entry.id }}/edit" class="entry-edit-{{ entry.id }}" style="display:none; margin-top: 0.5rem;">
+            <div class="form-group">
+                <input type="text" name="title" value="{{ entry.title }}" style="font-weight: 600; margin-bottom: 0.5rem;">
+            </div>
+            <div class="form-group">
+                <textarea name="content" rows="4">{{ entry.content }}</textarea>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                <button type="button" class="btn btn-sm" onclick="toggleEdit({{ entry.id }})">Cancel</button>
+            </div>
+        </form>
+        <div class="entry-meta">
+            <span class="text-muted">Source: {{ entry.source }}</span>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endfor %}
+{% else %}
+<div class="empty-state">
+    <p>No entries in this scope yet.</p>
+</div>
+{% endif %}
+{% endblock %}
+{% block scripts %}
+<script>
+function toggleEdit(id) {
+    var view = document.querySelector('.entry-view-' + id);
+    var edit = document.querySelector('.entry-edit-' + id);
+    if (edit.style.display === 'none') {
+        edit.style.display = 'block';
+        view.style.display = 'none';
+    } else {
+        edit.style.display = 'none';
+        view.style.display = 'block';
+    }
+}
+</script>
+{% endblock %}

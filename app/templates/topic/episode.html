@@ -1,0 +1,102 @@
+{% extends "base.html" %}
+{% block title %}{{ episode.title or topic.title }} — Episode{% endblock %}
+{% block content %}
+<div class="episode-header">
+    <h1>{{ episode.title or topic.title }}</h1>
+    {% if episode.subtitle %}
+    <p class="episode-subtitle">{{ episode.subtitle }}</p>
+    {% endif %}
+    <span class="badge badge-{{ episode.status.value }}">{{ episode.status.value.title() }}</span>
+</div>
+
+{% if episode.cold_open %}
+<div class="cold-open-banner">
+    <blockquote>{{ episode.cold_open }}</blockquote>
+</div>
+{% endif %}
+
+<div class="episode-tabs">
+    <button class="tab-btn active" onclick="showTab('paper')">Paper</button>
+    <button class="tab-btn" onclick="showTab('script')">Script</button>
+    <button class="tab-btn" onclick="showTab('notes')">Show Notes</button>
+    <button class="tab-btn" onclick="showTab('export')">Export</button>
+</div>
+
+<div id="tab-paper" class="tab-content active">
+    <div class="prose episode-prose">
+        {{ episode.paper_content | default('No paper content.') }}
+    </div>
+</div>
+
+<div id="tab-script" class="tab-content">
+    <div class="script-format">
+        <pre>{{ episode.script_content | default('No script content.') }}</pre>
+    </div>
+</div>
+
+<div id="tab-notes" class="tab-content">
+    {% if episode.show_notes %}
+    <div class="prose">{{ episode.show_notes }}</div>
+    {% endif %}
+
+    {% if episode.seo_title %}
+    <div class="seo-preview">
+        <h3>SEO Preview</h3>
+        <div class="seo-title">{{ episode.seo_title }}</div>
+        <div class="seo-desc">{{ episode.seo_description }}</div>
+        {% if episode.seo_keywords %}
+        <div class="seo-keywords">{{ episode.seo_keywords | join(', ') }}</div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if episode.social_snippets %}
+    <h3>Social Media Snippets</h3>
+    <div class="social-hooks">
+        {% for snippet in episode.social_snippets %}
+        <div class="social-card">
+            <span class="social-platform">{{ snippet.platform }}</span>
+            <p>{{ snippet.text }}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<div id="tab-export" class="tab-content">
+    <div class="export-grid">
+        <div class="export-card">
+            <h3>Paper</h3>
+            <div class="export-buttons">
+                <form method="POST" action="/topic/{{ topic.id }}/export/paper_pdf" style="display:inline;">
+                    <button class="btn">Download PDF</button>
+                </form>
+                <form method="POST" action="/topic/{{ topic.id }}/export/paper_docx" style="display:inline;">
+                    <button class="btn">Download DOCX</button>
+                </form>
+            </div>
+        </div>
+        <div class="export-card">
+            <h3>Script</h3>
+            <div class="export-buttons">
+                <form method="POST" action="/topic/{{ topic.id }}/export/script_pdf" style="display:inline;">
+                    <button class="btn">Download PDF</button>
+                </form>
+                <form method="POST" action="/topic/{{ topic.id }}/export/script_docx" style="display:inline;">
+                    <button class="btn">Download DOCX</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function showTab(name) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+}
+</script>
+{% endblock %}

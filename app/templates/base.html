@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}The Grand Unified Theory of X{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://unpkg.com/htmx.org@2.0.4"></script>
+</head>
+<body>
+    <nav class="top-nav">
+        <div class="nav-inner">
+            <a href="/" class="logo">The Grand Unified Theory of <span class="x-mark">X</span></a>
+            <div class="nav-links">
+                <a href="/">Dashboard</a>
+                <a href="/backlog">Backlog</a>
+                {% if is_admin %}<a href="/bible">Knowledge Base</a>{% endif %}
+                <a href="/topic/new" class="btn btn-sm">+ New Topic</a>
+                {% if is_admin %}
+                <a href="/logout" class="nav-logout">Logout</a>
+                {% else %}
+                <a href="/login" class="nav-logout">Admin</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+    <footer class="site-footer">
+        <p>The Grand Unified Theory of X &mdash; Etymology, Neuroscience, Culture, and Everything In Between</p>
+    </footer>
+    <script src="/static/js/app.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

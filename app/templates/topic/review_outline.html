@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Review Research — {{ topic.title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Review: {{ topic.title }}</h1>
+    <p>Research complete. Review the findings and select tangents to explore.</p>
+</div>
+
+{% if research %}
+<div class="research-summary">
+    <h2>Research Summary</h2>
+
+    {% if research.etymology %}
+    <div class="research-section">
+        <h3>Etymology</h3>
+        <p><strong>Origin:</strong> {{ research.etymology.word_origin }}</p>
+        <p>{{ research.etymology.language_journey }}</p>
+        {% if research.etymology.related_words %}
+        <p><strong>Related words:</strong> {{ research.etymology.related_words | join(', ') }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if research.neuroscience %}
+    <div class="research-section">
+        <h3>Neuroscience</h3>
+        <p>{{ research.neuroscience.brain_mechanisms }}</p>
+        {% if research.neuroscience.key_regions %}
+        <p><strong>Brain regions:</strong> {{ research.neuroscience.key_regions | join(', ') }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if research.surprising_facts %}
+    <div class="research-section">
+        <h3>Surprising Facts</h3>
+        <ul>
+        {% for fact in research.surprising_facts %}
+            <li>{{ fact }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    {% if research.examples %}
+    <div class="research-section">
+        <h3>Examples & Anecdotes ({{ research.examples | length }})</h3>
+        {% for ex in research.examples[:5] %}
+        <div class="example-card">
+            <strong>{{ ex.title }}</strong>
+            <p>{{ ex.description[:200] }}{% if ex.description|length > 200 %}...{% endif %}</p>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<div class="tangent-selection">
+    <h2>Select Tangents</h2>
+    <p>Choose related topics to weave into the episode. Adjust depth for each.</p>
+
+    {% if tangents_researched %}
+    <div class="alert alert-success">
+        Tangent research complete! You can now proceed to Phase 2.
+    </div>
+    <form method="POST" action="/topic/{{ topic.id }}/run-phase/2">
+        <button type="submit" class="btn btn-primary btn-lg">Start Phase 2: Writing</button>
+    </form>
+    {% elif tangents %}
+    <form method="POST" action="/topic/{{ topic.id }}/approve-tangents" class="tangent-form">
+        {% for tangent in tangents %}
+        <div class="tangent-card">
+            <label class="tangent-check">
+                <input type="checkbox" name="tangent_indices" value="{{ loop.index0 }}" checked>
+                <div class="tangent-content">
+                    <h4>{{ tangent.title }}</h4>
+                    <p class="tangent-hook">{{ tangent.hook }}</p>
+                    <p class="tangent-connection"><strong>Connection:</strong> {{ tangent.connection_to_main }}</p>
+                    <p class="tangent-difference"><strong>Key difference:</strong> {{ tangent.key_difference }}</p>
+                    <div class="depth-select">
+                        <label>Depth:</label>
+                        <select name="depth_{{ loop.index0 }}">
+                            <option value="brief mention" {% if tangent.suggested_depth == 'brief mention' %}selected{% endif %}>Brief mention</option>
+                            <option value="paragraph" {% if tangent.suggested_depth == 'paragraph' %}selected{% endif %}>Paragraph</option>
+                            <option value="deep dive" {% if tangent.suggested_depth == 'deep dive' %}selected{% endif %}>Deep dive</option>
+                        </select>
+                    </div>
+                </div>
+            </label>
+        </div>
+        {% endfor %}
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Approve & Research Tangents</button>
+            <button type="submit" formaction="/topic/{{ topic.id }}/approve-tangents" onclick="document.querySelectorAll('[name=tangent_indices]').forEach(cb => cb.checked = false)" class="btn btn-secondary">Skip Tangents</button>
+        </div>
+    </form>
+    {% else %}
+    <p>No tangent proposals available.</p>
+    <form method="POST" action="/topic/{{ topic.id }}/run-phase/2">
+        <button type="submit" class="btn btn-primary btn-lg">Start Phase 2: Writing</button>
+    </form>
+    {% endif %}
+</div>
+{% endblock %}

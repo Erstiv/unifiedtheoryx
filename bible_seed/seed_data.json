@@ -1,0 +1,72 @@
+[
+  {
+    "category": "voice_blend",
+    "title": "Adam Aleksic (Etymology Nerd)",
+    "content": "Contributes: Playful, enthusiastic deep-dives into word origins. Makes etymology feel like detective work. Uses surprising connections between languages to create 'aha' moments. Tone is geeky-excited, never pedantic. Example energy: 'Did you know that the word salary comes from salt? Roman soldiers were literally paid in seasoning.'"
+  },
+  {
+    "category": "voice_blend",
+    "title": "Jess Zafarris (Word History & Culture)",
+    "content": "Contributes: Cultural context around language evolution. How words reflect power, identity, and social change. Weaves in pop culture and modern usage naturally. Connects etymology to lived experience. Tone is warm, witty, conversational. She makes you feel like you're learning gossip about words."
+  },
+  {
+    "category": "voice_blend",
+    "title": "William Safire (Language & Opinion)",
+    "content": "Contributes: Precision, wit, and opinionated takes. The confidence to say 'this usage is wrong and here's why it matters.' Brings a columnist's eye for the telling detail. Loves the tension between prescriptive and descriptive linguistics. Writes with authority but never without humor."
+  },
+  {
+    "category": "voice_blend",
+    "title": "Oliver Sacks (Neurological Wonder)",
+    "content": "Contributes: The humanistic lens on brain science. Case studies that read like short stories. Finds the profound in the clinical. Makes neuroscience personal — it's always about a PERSON, not just a mechanism. Tone is gentle, curious, deeply empathetic. Every brain fact connects to what it means to be human."
+  },
+  {
+    "category": "voice_blend",
+    "title": "Richard Feynman (Accessible Brilliance)",
+    "content": "Contributes: The gift of explaining complex things simply without dumbing them down. Infectious curiosity — everything is interesting if you look at it right. Uses analogies from everyday life to explain technical concepts. Unafraid to say 'nobody understands this' when it's true. Playful irreverence toward authority."
+  },
+  {
+    "category": "voice_blend",
+    "title": "The Unified Voice — How They Combine",
+    "content": "The narrator is ONE voice that channels all five influences. Not a pastiche — a fusion. The voice is: curious like Feynman, warm like Sacks, witty like Safire, enthusiastic like Aleksic, culturally aware like Zafarris. Writing for the Scientific American audience: smart, educated readers who want depth without jargon. The neuroscience lens is the connective tissue — every topic ultimately connects to how brains process, create, and experience the world."
+  },
+  {
+    "category": "episode_structure",
+    "title": "The 10-Section Episode Template",
+    "content": "Every episode follows this arc: 1) COLD OPEN — A surprising fact or scenario that hooks the reader. No preamble, no 'today we'll discuss.' Just drop them into something fascinating. 2) ETYMOLOGY — The word itself. Where it came from, how it traveled, what it absorbed along the way. This is our signature move. 3) HISTORICAL CONTEXT — When and how this concept emerged in human consciousness. Key moments, key people, key shifts. 4) THE NEUROSCIENCE — What happens in the brain. This is the 'unified theory' part. Accessible, vivid, connected to experience. 5) REAL-WORLD EXAMPLES — Anecdotes, case studies, the specific over the general. Named people, specific moments. 6) CULTURAL CONNECTIONS — Memes, movies, music, art. How this concept lives in popular culture. 7) RELATED TANGENTS — Approved overlapping concepts. Where they connect and diverge. 8) MODERN RELEVANCE — Current trends, recent studies, news connections. Why this matters NOW. 9) THE FUTURE — Where is this heading? Speculation grounded in evidence. 10) CALLBACK — Ties back to the cold open. Reframes the opening hook with everything the reader now knows. The 'oh, now I see it differently' moment."
+  },
+  {
+    "category": "episode_structure",
+    "title": "Transitions Between Sections",
+    "content": "Sections should flow naturally, not feel like numbered lists. Use bridge sentences that carry momentum. Examples: Etymology → History: 'But the word didn't just sit there gathering dust...' History → Neuroscience: 'And it turns out there's a reason this idea took hold when it did...' Neuroscience → Examples: 'You've probably felt this yourself...' Never use: 'Moving on to...' or 'Next, let's discuss...' or 'In this section...'"
+  },
+  {
+    "category": "neuroscience_framing",
+    "title": "The Neuroscience Lens — How to Use It",
+    "content": "Every topic connects to the brain. This is not forced — it's the organizing principle. For Frisson: the locus coeruleus, dopamine anticipation, the prediction-violation loop. For Girl Scout Cookies: scarcity heuristics, nostalgia circuits, the endowment effect. For ASMR: the insular cortex, autonomous sensory meridian responses, parasympathetic activation. The neuroscience should feel like the 'unified theory' payoff — the moment where everything clicks into a bigger picture. Always name the brain regions but ALWAYS explain what they do in plain English. Never more than 2-3 paragraphs of pure neuroscience — weave it through the narrative instead."
+  },
+  {
+    "category": "neuroscience_framing",
+    "title": "Accessible Brain Science Rules",
+    "content": "1) Name the study or researcher ('In 2019, neuroscientist David Huron at Ohio State...'). 2) Use the body as a bridge ('Your palms sweat. Your pupils dilate. Your brain has already decided...'). 3) Analogies over abstractions ('The amygdala is like a smoke detector — it doesn't care if it's a real fire or burnt toast'). 4) Connect mechanism to experience ('This is why you get chills during that one part of that one song'). 5) Acknowledge limits ('We don't fully understand this yet, which is part of what makes it fascinating')."
+  },
+  {
+    "category": "writing_rules",
+    "title": "Core Writing Standards",
+    "content": "1) Specific over general. Always. Name the person, the year, the place. 'A researcher found' is banned. 'Psychologist Bluma Zeigarnik in 1927 Berlin' is what we do. 2) Short paragraphs. Maximum 4 sentences. White space is your friend. 3) Active voice by default. Passive only for deliberate effect. 4) One idea per paragraph. If you're using 'also' or 'additionally,' you need a new paragraph. 5) Humor emerges from juxtaposition and surprise, not from trying to be funny. If it doesn't land naturally, cut it. 6) The reader is smart. Don't explain jokes. Don't explain obvious connections. Trust them."
+  },
+  {
+    "category": "writing_rules",
+    "title": "The Scientific American Standard",
+    "content": "We write for the reader who subscribes to Scientific American, listens to Radiolab, reads Oliver Sacks on the subway. They want depth. They want nuance. They want to feel smarter after reading — not because you used big words, but because you connected ideas they hadn't connected before. No academic jargon without translation. No dumbing down. The sweet spot: a curious adult who didn't major in this but could have."
+  },
+  {
+    "category": "anti_patterns",
+    "title": "Things We Never Do",
+    "content": "1) 'In this article, we'll explore...' — No meta-commentary. Just start. 2) 'Studies show that...' without naming the study — Banned. Always cite specifically. 3) Listicle energy — '7 Things You Didn't Know About...' formatting. We tell stories, not lists. 4) 'Interestingly...' / 'Fascinatingly...' — If it's interesting, the reader will notice. Don't tell them what to feel. 5) Wikipedia voice — Neutral, encyclopedic tone. We have opinions. We have personality. 6) 'Since the dawn of time...' / 'Throughout human history...' — Be specific or don't start there. 7) Ending with a question — 'What do you think?' is a podcast cop-out. End with a statement that resonates. 8) Filler transitions — 'Now let's turn to...' / 'Moving along...' / 'With that said...' — Trust the reader to follow. 9) Over-qualifying — 'It could be argued that perhaps some researchers might suggest...' — Take a position. 10) Emoji or exclamation marks — The writing is the excitement."
+  },
+  {
+    "category": "writing_rules",
+    "title": "Paper vs. Script Differences",
+    "content": "The PAPER is for reading: tighter prose, can use parentheticals, footnote-style asides, and embedded links. Can handle longer sentences and more complex structures. The SCRIPT is for hearing: shorter sentences, more conversational. Repeat key terms (listeners can't re-read). Use '—' dashes for dramatic pauses. For multi-narrator scripts: HOST drives the narrative, EXPERT provides depth/corrections, STORYTELLER handles anecdotes and color. Single narrator: blend all three roles naturally."
+  }
+]

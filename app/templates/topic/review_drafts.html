@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block title %}Review Drafts — {{ topic.title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Review Drafts: {{ topic.title }}</h1>
+    {% if title_data %}
+    <h2 class="draft-title">{{ title_data.title }}</h2>
+    <p class="draft-subtitle">{{ title_data.subtitle }}</p>
+    {% endif %}
+</div>
+
+{% if title_data and title_data.cold_open %}
+<div class="cold-open-preview">
+    <h3>Cold Open</h3>
+    <blockquote>{{ title_data.cold_open }}</blockquote>
+</div>
+{% endif %}
+
+<div class="draft-tabs">
+    <button class="tab-btn active" onclick="showTab('paper')">Paper</button>
+    <button class="tab-btn" onclick="showTab('script')">Script</button>
+    {% if title_data and title_data.social_hooks %}
+    <button class="tab-btn" onclick="showTab('social')">Social Hooks</button>
+    {% endif %}
+</div>
+
+<div id="tab-paper" class="tab-content active">
+    {% if paper %}
+    <div class="draft-panel">
+        <div class="draft-meta">
+            <span>{{ paper.word_count | default(0) }} words</span>
+            <span>{{ topic.page_count }} page{{ 's' if topic.page_count > 1 }}</span>
+        </div>
+        <div class="draft-body prose">
+            {{ paper.paper | default('No paper content yet.') }}
+        </div>
+    </div>
+    {% else %}
+    <p>Paper not yet generated.</p>
+    {% endif %}
+</div>
+
+<div id="tab-script" class="tab-content">
+    {% if script %}
+    <div class="draft-panel">
+        <div class="draft-meta">
+            <span>{{ script.word_count | default(0) }} words</span>
+            <span>~{{ script.estimated_minutes | default(topic.script_minutes) }} minutes</span>
+            <span>{{ script.narrator_count | default(topic.narrator_count) }} narrator{{ 's' if (script.narrator_count | default(topic.narrator_count)) > 1 }}</span>
+        </div>
+        <div class="draft-body script-format">
+            <pre>{{ script.script | default('No script content yet.') }}</pre>
+        </div>
+    </div>
+    {% else %}
+    <p>Script not yet generated.</p>
+    {% endif %}
+</div>
+
+{% if title_data and title_data.social_hooks %}
+<div id="tab-social" class="tab-content">
+    <div class="social-hooks">
+        {% for hook in title_data.social_hooks %}
+        <div class="social-card">
+            <span class="social-platform">{{ hook.platform }}</span>
+            <p>{{ hook.text }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<div class="review-actions">
+    <form method="POST" action="/topic/{{ topic.id }}/approve-drafts" style="display:inline;">
+        <button type="submit" class="btn btn-primary btn-lg">Approve & Start Phase 3: Polish</button>
+    </form>
+    <a href="/topic/{{ topic.id }}" class="btn btn-secondary">Back to Topic</a>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+function showTab(name) {
+    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + name).classList.add('active');
+    event.target.classList.add('active');
+}
+</script>
+{% endblock %}

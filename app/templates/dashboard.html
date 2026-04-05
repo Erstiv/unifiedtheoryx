@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — The Grand Unified Theory of X{% endblock %}
+{% block content %}
+<div class="hero">
+    <h1>The Grand Unified Theory of <span class="x-mark">X</span></h1>
+    <p class="subtitle">Etymology. Neuroscience. Culture. Everything in between.</p>
+</div>
+
+<div class="stats-bar">
+    <div class="stat">
+        <span class="stat-number">{{ stats.total }}</span>
+        <span class="stat-label">Topics</span>
+    </div>
+    <div class="stat">
+        <span class="stat-number">{{ stats.in_progress }}</span>
+        <span class="stat-label">In Progress</span>
+    </div>
+    <div class="stat">
+        <span class="stat-number">{{ stats.completed }}</span>
+        <span class="stat-label">Completed</span>
+    </div>
+</div>
+
+<div class="section-header">
+    <h2>Recent Topics</h2>
+    <a href="/topic/new" class="btn">+ New Topic</a>
+</div>
+
+{% if topics %}
+<div class="topic-grid">
+    {% for topic in topics %}
+    <a href="/topic/{{ topic.id }}" class="topic-card">
+        <h3>{{ topic.title }}</h3>
+        <div class="topic-meta">
+            <span class="badge badge-{{ topic.status.value }}">{{ topic.status.value.replace('_', ' ').title() }}</span>
+            <span>{{ topic.page_count }}p / {{ topic.script_minutes }}min</span>
+        </div>
+        {% if topic.description %}
+        <p class="topic-desc">{{ topic.description[:120] }}{% if topic.description|length > 120 %}...{% endif %}</p>
+        {% endif %}
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <p>No topics yet. Start your first episode!</p>
+    <a href="/topic/new" class="btn">Create Your First Topic</a>
+</div>
+{% endif %}
+{% endblock %}

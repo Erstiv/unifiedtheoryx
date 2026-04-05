@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}New Topic — The Grand Unified Theory of X{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>New Episode Topic</h1>
+    <p>Enter a word, concept, phenomenon, feeling, meme, or cultural moment.</p>
+</div>
+
+<form method="POST" action="/topic/new" class="form-card">
+    <div class="form-group">
+        <label for="title">Topic</label>
+        <input type="text" id="title" name="title" required
+               placeholder="e.g., Frisson, ASMR, Deja Vu, Girl Scout Cookies, Phantom Limb..."
+               class="input-hero">
+    </div>
+
+    <div class="form-group">
+        <label for="description">Notes (optional)</label>
+        <textarea id="description" name="description" rows="3"
+                  placeholder="Any specific angles, questions, or connections you want to explore..."></textarea>
+    </div>
+
+    <div class="form-row">
+        <div class="form-group">
+            <label for="page_count">Pages</label>
+            <select id="page_count" name="page_count">
+                <option value="1">1 page (~600 words)</option>
+                <option value="2" selected>2 pages (~1200 words)</option>
+                <option value="3">3 pages (~1800 words)</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="script_minutes">Script Length</label>
+            <select id="script_minutes" name="script_minutes">
+                <option value="8">8 minutes</option>
+                <option value="10" selected>10 minutes</option>
+                <option value="12">12 minutes</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="narrator_count">Narrators</label>
+            <select id="narrator_count" name="narrator_count">
+                <option value="1" selected>1 (Monologue)</option>
+                <option value="2">2 (Host + Expert)</option>
+                <option value="3">3 (Host + Expert + Storyteller)</option>
+            </select>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-lg">Create Topic</button>
+</form>
+{% endblock %}

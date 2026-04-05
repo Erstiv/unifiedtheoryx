@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}Phase {{ run.phase }} — {{ topic.title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Phase {{ run.phase }}: {{ ['', 'Research', 'Writing', 'Polish'][run.phase] }}</h1>
+    <p>{{ topic.title }}</p>
+</div>
+
+<div id="status-panel" class="status-panel"
+     hx-get="/api/topic/{{ topic.id }}/run/{{ run.id }}/status"
+     hx-trigger="load, every 2s"
+     hx-swap="innerHTML">
+    <div class="loading">
+        <div class="spinner"></div>
+        <p>Starting agents...</p>
+    </div>
+</div>
+
+<div class="actions-panel" style="margin-top: 2rem;">
+    <a href="/topic/{{ topic.id }}" class="btn">Back to Topic</a>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+document.addEventListener('htmx:afterSwap', function(evt) {
+    if (evt.detail.target.id === 'status-panel') {
+        try {
+            const data = JSON.parse(evt.detail.xhr.responseText);
+            const panel = document.getElementById('status-panel');
+
+            let html = '<div class="run-status-detail">';
+            html += '<div class="status-header">';
+            html += '<span class="badge badge-' + data.status + '">' + data.status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) + '</span>';
+            html += '<span class="cost-display">$' + data.total_cost_usd.toFixed(4) + ' | ' + data.total_tokens.toLocaleString() + ' tokens</span>';
+            html += '</div>';
+
+            html += '<div class="agent-list">';
+            data.agents.forEach(function(agent) {
+                let statusClass = agent.status === 'completed' ? 'agent-done' :
+                                  agent.status === 'running' ? 'agent-running' :
+                                  agent.status === 'failed' ? 'agent-failed' : 'agent-pending';
+                html += '<div class="agent-row ' + statusClass + '">';
+                html += '<span class="agent-name">' + agent.display_name + '</span>';
+                html += '<span class="agent-status">' + agent.status + '</span>';
+                if (agent.tokens > 0) {
+                    html += '<span class="agent-tokens">' + agent.tokens.toLocaleString() + ' tok</span>';
+                }
+                html += '</div>';
+            });
+            html += '</div>';
+
+            // If done, show next action
+            if (data.status === 'paused_for_review' || data.status === 'completed') {
+                // Stop polling
+                panel.removeAttribute('hx-trigger');
+                htmx.process(panel);
+
+                html += '<div class="next-action">';
+                if (data.topic_status === 'paused_phase_1') {
+                    html += '<a href="/topic/{{ topic.id }}/review-outline" class="btn btn-primary">Review Research & Select Tangents</a>';
+                } else if (data.topic_status === 'paused_phase_2') {
+                    html += '<a href="/topic/{{ topic.id }}/review-drafts" class="btn btn-primary">Review Drafts</a>';
+                } else if (data.topic_status === 'completed') {
+                    html += '<a href="/topic/{{ topic.id }}/episode" class="btn btn-primary">View Episode</a>';
+                }
+                html += '</div>';
+            }
+
+            html += '</div>';
+            panel.innerHTML = html;
+        } catch (e) {
+            // Not JSON, leave as-is
+        }
+    }
+});
+</script>
+{% endblock %}
