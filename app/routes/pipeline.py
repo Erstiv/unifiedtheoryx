@@ -223,9 +223,16 @@ async def review_tangent_research(request: Request, topic_id: int, db: Session =
             if ar.agent_name == AgentName.TANGENT_RESEARCHER and ar.output_json:
                 tangent_research_output = ar.output_json
 
+    # Normalize: Gemini sometimes uses "tangents" instead of "tangent_research"
+    tangent_items = []
+    if tangent_research_output:
+        tangent_items = (tangent_research_output.get("tangent_research") or
+                         tangent_research_output.get("tangents") or [])
+
     return templates.TemplateResponse(request, "topic/review_tangent_research.html", {
         "topic": topic,
         "tangent_research": tangent_research_output,
+        "tangent_items": tangent_items,
     })
 
 

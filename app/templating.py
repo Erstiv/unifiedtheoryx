@@ -82,6 +82,30 @@ def _inline_format(text):
     return text
 
 
+def _render_section(data):
+    """Render a research section that could be a dict with specific fields OR a generic {section_title, content} shape."""
+    if not data:
+        return ""
+    if isinstance(data, str):
+        return data
+    if isinstance(data, dict):
+        # Check for generic Gemini shape: {section_title, content}
+        if "content" in data and ("section_title" in data or len(data) <= 3):
+            content = data.get("content", "")
+            if isinstance(content, str):
+                return content
+            if isinstance(content, list):
+                return "\n".join(str(item) for item in content)
+            if isinstance(content, dict):
+                parts = []
+                for k, v in content.items():
+                    label = k.replace("_", " ").title()
+                    parts.append(f"<strong>{label}:</strong> {_extract_text(v)}")
+                return "<br>".join(parts)
+            return str(content)
+    return ""
+
+
 def _extract_text(item):
     """Extract display text from a value that might be a string, dict, or list."""
     if isinstance(item, str):
@@ -103,6 +127,7 @@ def _extract_text(item):
 # Register filters
 _base.env.filters["markdown"] = lambda text: markupsafe.Markup(_md_to_html(text))
 _base.env.filters["extract_text"] = _extract_text
+_base.env.filters["render_section"] = lambda data: markupsafe.Markup(_render_section(data))
 
 
 _orig = _base.TemplateResponse

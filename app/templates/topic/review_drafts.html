@@ -39,7 +39,7 @@
 <div class="draft-tabs">
     <button type="button" class="tab-btn active" onclick="showTab('paper')">Paper</button>
     <button type="button" class="tab-btn" onclick="showTab('script')">Script</button>
-    {% if danger_mode and script and script.cast %}
+    {% if danger_mode and topic.narrator_count >= 2 and script %}
     <button type="button" class="tab-btn" onclick="showTab('cast')">Cast Bios</button>
     {% endif %}
     {% if title_data and title_data.social_hooks %}
@@ -94,23 +94,24 @@
     {% endif %}
 </div>
 
-{% if danger_mode and script and script.cast %}
+{% if danger_mode and topic.narrator_count >= 2 and script %}
 <div id="tab-cast" class="tab-content">
     <div class="draft-panel">
         <h3>Expert</h3>
+        {% set cast = script.cast if script.cast is defined and script.cast else {} %}
         <div class="form-row" style="grid-template-columns: 1fr 2fr;">
             <div class="form-group">
                 <label>Name</label>
-                <input type="text" name="expert_name" value="{{ script.cast.expert_name | default('') }}">
+                <input type="text" name="expert_name" value="{{ cast.expert_name | default('') }}" placeholder="AI will invent if left blank">
             </div>
             <div class="form-group">
                 <label>Title / Credential</label>
-                <input type="text" name="expert_title" value="{{ script.cast.expert_title | default('') }}">
+                <input type="text" name="expert_title" value="{{ cast.expert_title | default('') }}" placeholder="e.g. Professor of Neurolinguistics at MIT">
             </div>
         </div>
         <div class="form-group">
             <label>Personality</label>
-            <textarea name="expert_personality" rows="2">{{ script.cast.expert_personality | default('') }}</textarea>
+            <textarea name="expert_personality" rows="2" placeholder="e.g. Dry wit, gets excited about obscure studies">{{ cast.expert_personality | default('') }}</textarea>
         </div>
 
         {% if topic.narrator_count >= 3 %}
@@ -118,16 +119,16 @@
         <div class="form-row" style="grid-template-columns: 1fr 2fr;">
             <div class="form-group">
                 <label>Name</label>
-                <input type="text" name="everybody_name" value="{{ script.cast.everybody_name | default('') }}">
+                <input type="text" name="everybody_name" value="{{ cast.everybody_name | default('') }}" placeholder="AI will invent if left blank">
             </div>
             <div class="form-group">
                 <label>Relationship</label>
-                <input type="text" name="everybody_relationship" value="{{ script.cast.everybody_relationship | default('') }}">
+                <input type="text" name="everybody_relationship" value="{{ cast.everybody_relationship | default('') }}" placeholder="e.g. The host's mother, the expert's barber">
             </div>
         </div>
         <div class="form-group">
             <label>Personality</label>
-            <textarea name="everybody_personality" rows="2">{{ script.cast.everybody_personality | default('') }}</textarea>
+            <textarea name="everybody_personality" rows="2" placeholder="e.g. Confidently wrong, wholesome">{{ cast.everybody_personality | default('') }}</textarea>
         </div>
         {% endif %}
     </div>

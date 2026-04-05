@@ -13,20 +13,24 @@
     {% if research.etymology %}
     <div class="research-section">
         <h3>Etymology</h3>
-        {% if research.etymology.word_origin %}
+        {% if research.etymology.word_origin is defined and research.etymology.word_origin %}
         <p><strong>Origin:</strong> {{ research.etymology.word_origin }}</p>
         {% endif %}
-        {% if research.etymology.language_journey %}
+        {% if research.etymology.language_journey is defined and research.etymology.language_journey %}
         <p>{{ research.etymology.language_journey }}</p>
         {% endif %}
-        {% if research.etymology.earliest_usage %}
+        {% if research.etymology.earliest_usage is defined and research.etymology.earliest_usage %}
         <p><strong>Earliest usage:</strong> {{ research.etymology.earliest_usage }}</p>
         {% endif %}
-        {% if research.etymology.semantic_shifts %}
-        <p><strong>Semantic shifts:</strong> {{ research.etymology.semantic_shifts | join('; ') }}</p>
+        {% if research.etymology.semantic_shifts is defined and research.etymology.semantic_shifts %}
+        <p><strong>Semantic shifts:</strong> {% if research.etymology.semantic_shifts is string %}{{ research.etymology.semantic_shifts }}{% else %}{{ research.etymology.semantic_shifts | join('; ') }}{% endif %}</p>
         {% endif %}
-        {% if research.etymology.related_words %}
-        <p><strong>Related words:</strong> {{ research.etymology.related_words | join(', ') }}</p>
+        {% if research.etymology.related_words is defined and research.etymology.related_words %}
+        <p><strong>Related words:</strong> {% if research.etymology.related_words is string %}{{ research.etymology.related_words }}{% else %}{{ research.etymology.related_words | join(', ') }}{% endif %}</p>
+        {% endif %}
+        {# Fallback for generic Gemini shape #}
+        {% if research.etymology.content is defined and research.etymology.content %}
+        {{ research.etymology | render_section }}
         {% endif %}
     </div>
     {% endif %}
@@ -34,24 +38,22 @@
     {% if research.history %}
     <div class="research-section">
         <h3>History</h3>
-        {% if research.history.emergence %}
+        {% if research.history.emergence is defined and research.history.emergence %}
         <p>{{ research.history.emergence }}</p>
         {% endif %}
-        {% if research.history.key_moments %}
+        {% if research.history.key_moments is defined and research.history.key_moments %}
         <div class="history-timeline">
             {% for moment in research.history.key_moments %}
             <div class="timeline-item">
                 {% if moment is mapping %}
                 <strong>{{ moment.year | default('') }}</strong> — {{ moment.event | default(moment | extract_text) }}
                 {% if moment.significance %}<br><small class="text-muted">{{ moment.significance }}</small>{% endif %}
-                {% else %}
-                {{ moment | extract_text }}
-                {% endif %}
+                {% else %}{{ moment | extract_text }}{% endif %}
             </div>
             {% endfor %}
         </div>
         {% endif %}
-        {% if research.history.notable_figures %}
+        {% if research.history.notable_figures is defined and research.history.notable_figures %}
         <p><strong>Notable figures:</strong></p>
         <ul>
         {% for fig in research.history.notable_figures %}
@@ -59,49 +61,51 @@
         {% endfor %}
         </ul>
         {% endif %}
+        {% if research.history.content is defined and research.history.content %}
+        {{ research.history | render_section }}
+        {% endif %}
     </div>
     {% endif %}
 
     {% if research.neuroscience %}
     <div class="research-section">
         <h3>Neuroscience</h3>
-        {% if research.neuroscience.brain_mechanisms %}
+        {% if research.neuroscience.brain_mechanisms is defined and research.neuroscience.brain_mechanisms %}
         <p>{{ research.neuroscience.brain_mechanisms }}</p>
         {% endif %}
-        {% if research.neuroscience.key_regions %}
-        <p><strong>Brain regions:</strong> {{ research.neuroscience.key_regions | join(', ') }}</p>
+        {% if research.neuroscience.key_regions is defined and research.neuroscience.key_regions %}
+        <p><strong>Brain regions:</strong> {% if research.neuroscience.key_regions is string %}{{ research.neuroscience.key_regions }}{% else %}{{ research.neuroscience.key_regions | join(', ') }}{% endif %}</p>
         {% endif %}
-        {% if research.neuroscience.neurotransmitters %}
-        <p><strong>Neurotransmitters:</strong> {{ research.neuroscience.neurotransmitters | join(', ') }}</p>
+        {% if research.neuroscience.neurotransmitters is defined and research.neuroscience.neurotransmitters %}
+        <p><strong>Neurotransmitters:</strong> {% if research.neuroscience.neurotransmitters is string %}{{ research.neuroscience.neurotransmitters }}{% else %}{{ research.neuroscience.neurotransmitters | join(', ') }}{% endif %}</p>
         {% endif %}
-        {% if research.neuroscience.body_connection %}
+        {% if research.neuroscience.body_connection is defined and research.neuroscience.body_connection %}
         <p><strong>Body connection:</strong> {{ research.neuroscience.body_connection }}</p>
         {% endif %}
-        {% if research.neuroscience.named_studies %}
-        <div class="named-studies">
-            <strong>Key studies:</strong>
-            <ul>
-            {% for study in research.neuroscience.named_studies %}
-                <li>{% if study is mapping %}{{ study.researcher | default('') }} ({{ study.year | default('') }}{% if study.institution %}, {{ study.institution }}{% endif %}) — {{ study.finding | default(study | extract_text) }}{% else %}{{ study | extract_text }}{% endif %}</li>
-            {% endfor %}
-            </ul>
-        </div>
+        {% if research.neuroscience.named_studies is defined and research.neuroscience.named_studies %}
+        <strong>Key studies:</strong>
+        <ul>
+        {% for study in research.neuroscience.named_studies %}
+            <li>{% if study is mapping %}{{ study.researcher | default('') }} ({{ study.year | default('') }}{% if study.institution %}, {{ study.institution }}{% endif %}) — {{ study.finding | default(study | extract_text) }}{% else %}{{ study | extract_text }}{% endif %}</li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+        {% if research.neuroscience.content is defined and research.neuroscience.content %}
+        {{ research.neuroscience | render_section }}
         {% endif %}
     </div>
     {% endif %}
 
     {% if research.examples %}
     <div class="research-section">
-        <h3>Examples & Anecdotes ({{ research.examples | length }})</h3>
+        <h3>Examples & Anecdotes</h3>
         {% for ex in research.examples[:6] %}
         <div class="example-card">
             {% if ex is mapping %}
             <strong>{{ ex.title | default('Example') }}</strong>
             {% if ex.description %}<p>{{ ex.description[:300] }}{% if ex.description|length > 300 %}...{% endif %}</p>{% endif %}
             {% if ex.source %}<small class="text-muted">Source: {{ ex.source }}</small>{% endif %}
-            {% else %}
-            <p>{{ ex | extract_text }}</p>
-            {% endif %}
+            {% else %}<p>{{ ex | extract_text }}</p>{% endif %}
         </div>
         {% endfor %}
     </div>
@@ -116,9 +120,7 @@
             <strong>{{ cc.reference | default(cc | extract_text) }}</strong>
             {% if cc.medium %}<span class="badge badge-draft" style="margin-left: 0.5rem;">{{ cc.medium }}</span>{% endif %}
             {% if cc.connection %}<p>{{ cc.connection }}</p>{% endif %}
-            {% else %}
-            <p>{{ cc | extract_text }}</p>
-            {% endif %}
+            {% else %}<p>{{ cc | extract_text }}</p>{% endif %}
         </div>
         {% endfor %}
     </div>
@@ -133,9 +135,7 @@
             <strong>{{ ev.headline | default(ev | extract_text) }}</strong>
             {% if ev.source %}<small class="text-muted"> — {{ ev.source }}</small>{% endif %}
             {% if ev.relevance %}<p>{{ ev.relevance }}</p>{% endif %}
-            {% else %}
-            <p>{{ ev | extract_text }}</p>
-            {% endif %}
+            {% else %}<p>{{ ev | extract_text }}</p>{% endif %}
         </div>
         {% endfor %}
     </div>
@@ -149,9 +149,7 @@
             {% if mc is mapping %}
             <p><strong>Myth:</strong> {{ mc.myth | default(mc | extract_text) }}</p>
             {% if mc.reality %}<p><strong>Reality:</strong> {{ mc.reality }}</p>{% endif %}
-            {% else %}
-            <p>{{ mc | extract_text }}</p>
-            {% endif %}
+            {% else %}<p>{{ mc | extract_text }}</p>{% endif %}
         </div>
         {% endfor %}
     </div>
@@ -176,15 +174,19 @@
 
     {% if tangents_researched %}
     <div class="alert alert-success">
-        Tangent research complete! You can now proceed to Phase 2.
+        Tangent research complete! You can now proceed.
     </div>
     {% if danger_mode %}
     <a href="/topic/{{ topic.id }}/review-tangent-research" class="btn btn-primary btn-lg">Review Tangent Research</a>
+    <form method="POST" action="/topic/{{ topic.id }}/run-phase/2" style="display:inline; margin-left: 0.5rem;">
+        <button type="submit" class="btn btn-lg">Skip Review → Phase 2</button>
+    </form>
     {% else %}
     <form method="POST" action="/topic/{{ topic.id }}/run-phase/2">
         <button type="submit" class="btn btn-primary btn-lg">Start Phase 2: Writing</button>
     </form>
     {% endif %}
+
     {% elif tangents %}
     <form method="POST" action="/topic/{{ topic.id }}/approve-tangents" class="tangent-form">
         {% for tangent in tangents %}
@@ -196,6 +198,12 @@
                     <p class="tangent-hook">{{ tangent.hook }}</p>
                     <p class="tangent-connection"><strong>Connection:</strong> {{ tangent.connection_to_main }}</p>
                     <p class="tangent-difference"><strong>Key difference:</strong> {{ tangent.key_difference }}</p>
+                    {% if danger_mode %}
+                    <div class="form-group" style="margin-top: 0.5rem;">
+                        <label>Edit hook/description:</label>
+                        <textarea name="tangent_edit_{{ loop.index0 }}" rows="2" class="edit-textarea" style="font-size: 0.9rem;">{{ tangent.hook }}</textarea>
+                    </div>
+                    {% endif %}
                     <div class="depth-select">
                         <label>Depth:</label>
                         <select name="depth_{{ loop.index0 }}">
@@ -224,6 +232,7 @@
     <form method="POST" action="/topic/{{ topic.id }}/approve-tangents" style="display:inline;">
         <button type="submit" class="btn btn-secondary">Skip Tangents</button>
     </form>
+
     {% else %}
     <p>No tangent proposals available.</p>
     <form method="POST" action="/topic/{{ topic.id }}/run-phase/2">
@@ -252,7 +261,6 @@ function addCustomTangent() {
         '<button type="button" class="btn btn-sm btn-danger" onclick="document.getElementById(\'custom-tangent-' + i + '\').remove()" style="margin-top:0.5rem;">Remove</button>' +
         '</div></div>';
     document.getElementById('custom-tangent-list').insertAdjacentHTML('beforeend', html);
-    // Update the hidden count
     var countInput = document.getElementById('custom-tangent-count');
     if (!countInput) {
         countInput = document.createElement('input');
