@@ -16,11 +16,34 @@
 </div>
 {% endif %}
 
+<form method="POST" action="/topic/{{ topic.id }}/approve-drafts">
+
+{% if danger_mode and title_data %}
+<div class="research-section" style="margin-bottom: 1.5rem;">
+    <h3>Title & Hook (editable)</h3>
+    <div class="form-group">
+        <label>Title</label>
+        <input type="text" name="edit_title" value="{{ title_data.title | default('') }}">
+    </div>
+    <div class="form-group">
+        <label>Subtitle</label>
+        <input type="text" name="edit_subtitle" value="{{ title_data.subtitle | default('') }}">
+    </div>
+    <div class="form-group">
+        <label>Cold Open</label>
+        <textarea name="edit_cold_open" rows="4">{{ title_data.cold_open | default('') }}</textarea>
+    </div>
+</div>
+{% endif %}
+
 <div class="draft-tabs">
-    <button class="tab-btn active" onclick="showTab('paper')">Paper</button>
-    <button class="tab-btn" onclick="showTab('script')">Script</button>
+    <button type="button" class="tab-btn active" onclick="showTab('paper')">Paper</button>
+    <button type="button" class="tab-btn" onclick="showTab('script')">Script</button>
+    {% if danger_mode and script and script.cast %}
+    <button type="button" class="tab-btn" onclick="showTab('cast')">Cast Bios</button>
+    {% endif %}
     {% if title_data and title_data.social_hooks %}
-    <button class="tab-btn" onclick="showTab('social')">Social Hooks</button>
+    <button type="button" class="tab-btn" onclick="showTab('social')">Social Hooks</button>
     {% endif %}
 </div>
 
@@ -31,9 +54,16 @@
             <span>{{ paper.word_count | default(0) }} words</span>
             <span>{{ topic.page_count }} page{{ 's' if topic.page_count > 1 }}</span>
         </div>
+        {% if danger_mode %}
+        <div class="form-group">
+            <label>Paper Content (editable — markdown)</label>
+            <textarea name="paper_content" rows="30" class="edit-textarea">{{ paper.paper | default('') }}</textarea>
+        </div>
+        {% else %}
         <div class="draft-body prose">
             {{ paper.paper | default('No paper content yet.') | markdown }}
         </div>
+        {% endif %}
     </div>
     {% else %}
     <p>Paper not yet generated.</p>
@@ -48,40 +78,98 @@
             <span>~{{ script.estimated_minutes | default(topic.script_minutes) }} minutes</span>
             <span>{{ script.narrator_count | default(topic.narrator_count) }} narrator{{ 's' if (script.narrator_count | default(topic.narrator_count)) > 1 }}</span>
         </div>
+        {% if danger_mode %}
+        <div class="form-group">
+            <label>Script Content (editable)</label>
+            <textarea name="script_content" rows="30" class="edit-textarea script-edit">{{ script.script | default('') }}</textarea>
+        </div>
+        {% else %}
         <div class="draft-body script-format">
             <pre>{{ script.script | default('No script content yet.') }}</pre>
         </div>
+        {% endif %}
     </div>
     {% else %}
     <p>Script not yet generated.</p>
     {% endif %}
 </div>
 
+{% if danger_mode and script and script.cast %}
+<div id="tab-cast" class="tab-content">
+    <div class="draft-panel">
+        <h3>Expert</h3>
+        <div class="form-row" style="grid-template-columns: 1fr 2fr;">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="expert_name" value="{{ script.cast.expert_name | default('') }}">
+            </div>
+            <div class="form-group">
+                <label>Title / Credential</label>
+                <input type="text" name="expert_title" value="{{ script.cast.expert_title | default('') }}">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Personality</label>
+            <textarea name="expert_personality" rows="2">{{ script.cast.expert_personality | default('') }}</textarea>
+        </div>
+
+        {% if topic.narrator_count >= 3 %}
+        <h3 style="margin-top: 1.5rem;">The Everybody</h3>
+        <div class="form-row" style="grid-template-columns: 1fr 2fr;">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" name="everybody_name" value="{{ script.cast.everybody_name | default('') }}">
+            </div>
+            <div class="form-group">
+                <label>Relationship</label>
+                <input type="text" name="everybody_relationship" value="{{ script.cast.everybody_relationship | default('') }}">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Personality</label>
+            <textarea name="everybody_personality" rows="2">{{ script.cast.everybody_personality | default('') }}</textarea>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endif %}
+
 {% if title_data and title_data.social_hooks %}
 <div id="tab-social" class="tab-content">
     <div class="social-hooks">
         {% for hook in title_data.social_hooks %}
         <div class="social-card">
+            {% if danger_mode %}
+            <input type="hidden" name="hook_platform_{{ loop.index0 }}" value="{{ hook.platform }}">
+            <span class="social-platform">{{ hook.platform }}</span>
+            <textarea name="hook_text_{{ loop.index0 }}" rows="2" style="margin-top: 0.4rem; width: 100%;">{{ hook.text }}</textarea>
+            {% else %}
             <span class="social-platform">{{ hook.platform }}</span>
             <p>{{ hook.text }}</p>
+            {% endif %}
         </div>
         {% endfor %}
+        {% if danger_mode %}
+        <input type="hidden" name="social_hook_count" value="{{ title_data.social_hooks | length }}">
+        {% endif %}
     </div>
 </div>
 {% endif %}
 
 <div class="review-actions">
-    <form method="POST" action="/topic/{{ topic.id }}/approve-drafts" style="display:inline;">
-        <button type="submit" class="btn btn-primary btn-lg">Approve & Start Phase 3: Polish</button>
-    </form>
+    <button type="submit" class="btn btn-primary btn-lg">
+        {% if danger_mode %}Save Edits & Start Phase 3: Polish{% else %}Approve & Start Phase 3: Polish{% endif %}
+    </button>
     <a href="/topic/{{ topic.id }}" class="btn btn-secondary">Back to Topic</a>
 </div>
+
+</form>
 {% endblock %}
 {% block scripts %}
 <script>
 function showTab(name) {
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
     document.getElementById('tab-' + name).classList.add('active');
     event.target.classList.add('active');
 }

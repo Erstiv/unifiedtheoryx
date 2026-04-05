@@ -46,9 +46,23 @@ Remove ALL instances of:
 - Do [DIRECTION] tags enhance or clutter?
 - Do timing markers align with target length?
 
+**Pass 6: Citation Cleanup (when DANGER_MODE=true)**
+If the paper or script contains inline citation markers like [1], [2], etc.:
+- REMOVE all inline [N] markers from the paper and script body text. The final prose should read cleanly without any bracketed numbers.
+- Compile a separate `citations_appendix` string in markdown format:
+  ```
+  ## References
+
+  [1] Author Name (Year). "Brief finding summary." Source/Institution. URL if available.
+  [2] ...
+  ```
+- Match each [N] to its source from the research context.
+- If no inline citations exist, set `citations_appendix` to an empty string.
+
 ## OUTPUT:
 Return BOTH the refined paper and refined script as the final versions.
 Include a brief editor's note listing what you changed and why.
+Include `citations_appendix` with the compiled reference list (or empty string if none).
 
 Return a JSON object with the structure defined in the output schema."""
 
@@ -69,6 +83,7 @@ OUTPUT_SCHEMA = {
                 "overall": {"type": "integer"},
             },
         },
+        "citations_appendix": {"type": "string"},
         "flags": {"type": "array", "items": {
             "type": "object",
             "properties": {

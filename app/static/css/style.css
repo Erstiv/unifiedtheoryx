@@ -354,6 +354,29 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: var(--a
 .nav-logout { font-size: 0.8rem; opacity: 0.6; }
 .nav-logout:hover { opacity: 1; }
 
+/* Danger Mode Toggle */
+.danger-toggle-form { position: fixed; bottom: 8px; right: 8px; z-index: 9999; }
+.danger-toggle {
+    background: none; border: none; font-size: 9px; color: var(--text-muted);
+    opacity: 0.07; cursor: pointer; font-family: monospace; padding: 2px 4px;
+}
+.danger-toggle:hover { opacity: 0.3; }
+.danger-toggle.danger-active { opacity: 0.15; color: var(--error); }
+
+/* Danger Mode Editing */
+.edit-textarea {
+    width: 100%; font-family: Georgia, serif; font-size: 0.95rem; line-height: 1.6;
+    padding: 1rem; border: 1px solid var(--border); border-radius: 4px;
+    background: var(--white); resize: vertical;
+}
+.edit-textarea.script-edit { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 0.85rem; }
+.custom-tangents-section { margin-top: 1.5rem; padding-top: 1rem; border-top: 1px dashed var(--border); }
+.custom-tangents-section h4 { margin-bottom: 0.75rem; color: var(--amber); }
+.custom-tangent { border-color: var(--amber); border-style: dashed; }
+.source-textarea { font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+.timeline-item { padding: 0.4rem 0; border-left: 2px solid var(--amber); padding-left: 1rem; margin-bottom: 0.3rem; }
+.named-studies ul { margin-top: 0.4rem; }
+
 /* Bible Entry Edit */
 .entry-header { display: flex; justify-content: space-between; align-items: flex-start; }
 .entry-actions { display: flex; gap: 0.4rem; flex-shrink: 0; }

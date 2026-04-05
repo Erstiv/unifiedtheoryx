@@ -19,6 +19,7 @@
     <button class="tab-btn active" onclick="showTab('paper')">Paper</button>
     <button class="tab-btn" onclick="showTab('script')">Script</button>
     <button class="tab-btn" onclick="showTab('notes')">Show Notes</button>
+    {% if episode.citations_appendix %}<button class="tab-btn" onclick="showTab('references')">References</button>{% endif %}
     <button class="tab-btn" onclick="showTab('export')">Export</button>
 </div>
 
@@ -62,6 +63,14 @@
     </div>
     {% endif %}
 </div>
+
+{% if episode.citations_appendix %}
+<div id="tab-references" class="tab-content">
+    <div class="prose">
+        {{ episode.citations_appendix | markdown }}
+    </div>
+</div>
+{% endif %}
 
 <div id="tab-export" class="tab-content">
     <div class="export-grid">

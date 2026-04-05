@@ -96,6 +96,7 @@ class Topic(Base):
     narrator_count = Column(Integer, default=1)  # 1-3 narrators
     expert_gender = Column(String(20), default="any")  # "male", "female", "any"
     everybody_gender = Column(String(20), default="any")  # "male", "female", "any"
+    danger_mode_edits = Column(JSON)  # Stores user edits from danger mode reviews
     status = Column(SQLEnum(TopicStatus), default=TopicStatus.DRAFT)
     current_phase = Column(Integer, default=0)
     approved_tangents = Column(JSON)  # [{title, depth, description}, ...]
@@ -195,6 +196,7 @@ class Episode(Base):
     seo_keywords = Column(JSON)  # ["keyword1", "keyword2", ...]
     social_snippets = Column(JSON)  # [{"platform": "twitter", "text": "..."}, ...]
     show_notes = Column(Text)  # Markdown: references, further reading
+    citations_appendix = Column(Text)  # Full cited references from editor
     status = Column(SQLEnum(EpisodeStatus), default=EpisodeStatus.DRAFT)
     created_at = Column(DateTime, default=lambda: datetime.now(timezone.utc))
     updated_at = Column(DateTime, default=lambda: datetime.now(timezone.utc),

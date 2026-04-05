@@ -149,6 +149,22 @@ async def approve_tangents(request: Request, topic_id: int, db: Session = Depend
                 "description": tangent.get("hook", ""),
             })
 
+    # Handle custom tangents from danger mode
+    custom_count_str = form.get("custom_tangent_count", "0")
+    try:
+        custom_count = int(custom_count_str)
+    except (ValueError, TypeError):
+        custom_count = 0
+    for ci in range(custom_count):
+        title = form.get(f"custom_tangent_title_{ci}", "").strip()
+        if title:
+            approved.append({
+                "title": title,
+                "depth": form.get(f"custom_tangent_depth_{ci}", "paragraph"),
+                "description": form.get(f"custom_tangent_desc_{ci}", ""),
+                "custom": True,
+            })
+
     topic.approved_tangents = approved
     db.commit()
 
@@ -194,6 +210,92 @@ async def tangent_status_api(topic_id: int, db: Session = Depends(get_db)):
     return JSONResponse({"done": done, "status": topic.status.value})
 
 
+@router.get("/topic/{topic_id}/review-tangent-research", response_class=HTMLResponse)
+async def review_tangent_research(request: Request, topic_id: int, db: Session = Depends(get_db)):
+    """Danger mode: review detailed tangent research with editing."""
+    topic = db.query(Topic).filter(Topic.id == topic_id).first()
+    if not topic:
+        return HTMLResponse("Topic not found", status_code=404)
+
+    tangent_research_output = None
+    for run in topic.pipeline_runs:
+        for ar in run.agent_runs:
+            if ar.agent_name == AgentName.TANGENT_RESEARCHER and ar.output_json:
+                tangent_research_output = ar.output_json
+
+    return templates.TemplateResponse(request, "topic/review_tangent_research.html", {
+        "topic": topic,
+        "tangent_research": tangent_research_output,
+    })
+
+
+@router.post("/topic/{topic_id}/save-tangent-edits")
+async def save_tangent_edits(request: Request, topic_id: int, db: Session = Depends(get_db)):
+    """Save user edits to tangent research (danger mode)."""
+    topic = db.query(Topic).filter(Topic.id == topic_id).first()
+    if not topic:
+        return JSONResponse({"error": "Not found"}, status_code=404)
+
+    form = await request.form()
+    action = form.get("action", "save")
+
+    try:
+        tangent_count = int(form.get("tangent_count", "0"))
+    except (ValueError, TypeError):
+        tangent_count = 0
+
+    edited_tangents = []
+    for i in range(tangent_count):
+        edited_tangents.append({
+            "key_facts": form.get(f"tangent_{i}_key_facts", "").split("\n"),
+            "connection_to_main": form.get(f"tangent_{i}_connection", ""),
+            "contrast_with_main": form.get(f"tangent_{i}_contrast", ""),
+            "best_anecdote": form.get(f"tangent_{i}_anecdote", ""),
+            "neuroscience_angle": form.get(f"tangent_{i}_neuro", ""),
+            "sources": [s.strip() for s in form.get(f"tangent_{i}_sources", "").split("\n") if s.strip()],
+        })
+
+    edits = topic.danger_mode_edits or {}
+    edits["tangent_research"] = edited_tangents
+    topic.danger_mode_edits = edits
+    from sqlalchemy.orm.attributes import flag_modified
+    flag_modified(topic, "danger_mode_edits")
+    db.commit()
+
+    if action == "approve":
+        # Start Phase 2
+        pipeline_run = create_phase_run(db, topic_id, 2)
+        threading.Thread(target=_run_phase_background, args=(pipeline_run.id,), daemon=True).start()
+        return RedirectResponse(f"/topic/{topic_id}/run/{pipeline_run.id}", status_code=303)
+
+    return RedirectResponse(f"/topic/{topic_id}/review-tangent-research", status_code=303)
+
+
+@router.post("/topic/{topic_id}/rerun-tangent-research")
+async def rerun_tangent_research_route(request: Request, topic_id: int, db: Session = Depends(get_db)):
+    """Rerun tangent research with user guidance (danger mode)."""
+    form = await request.form()
+    guidance = form.get("guidance", "")
+
+    # Set the topic back to tangent research state
+    topic = db.query(Topic).filter(Topic.id == topic_id).first()
+    if not topic:
+        return JSONResponse({"error": "Not found"}, status_code=404)
+
+    def _rerun_bg():
+        _db = SessionLocal()
+        try:
+            run_tangent_research(_db, topic_id)
+        except Exception as e:
+            import logging
+            logging.getLogger("unified_theory").error(f"Tangent rerun failed: {e}")
+        finally:
+            _db.close()
+
+    threading.Thread(target=_rerun_bg, daemon=True).start()
+    return RedirectResponse(f"/topic/{topic_id}/tangent-progress", status_code=303)
+
+
 @router.get("/topic/{topic_id}/review-drafts", response_class=HTMLResponse)
 async def review_drafts(request: Request, topic_id: int, db: Session = Depends(get_db)):
     """Review paper and script drafts side by side."""
@@ -223,11 +325,42 @@ async def review_drafts(request: Request, topic_id: int, db: Session = Depends(g
 
 
 @router.post("/topic/{topic_id}/approve-drafts")
-async def approve_drafts(topic_id: int, db: Session = Depends(get_db)):
+async def approve_drafts(request: Request, topic_id: int, db: Session = Depends(get_db)):
     """Approve drafts and start Phase 3."""
     topic = db.query(Topic).filter(Topic.id == topic_id).first()
     if not topic:
         return JSONResponse({"error": "Topic not found"}, status_code=404)
+
+    # Check if danger mode edits were submitted
+    danger_mode = request.session.get("danger_mode", False) if hasattr(request, "session") else False
+    if danger_mode:
+        form = await request.form()
+        edits = topic.danger_mode_edits or {}
+        edits["paper"] = form.get("paper_content", "")
+        edits["script"] = form.get("script_content", "")
+        edits["title"] = form.get("edit_title", "")
+        edits["subtitle"] = form.get("edit_subtitle", "")
+        edits["cold_open"] = form.get("edit_cold_open", "")
+        edits["expert_name"] = form.get("expert_name", "")
+        edits["expert_title"] = form.get("expert_title", "")
+        edits["expert_personality"] = form.get("expert_personality", "")
+        edits["everybody_name"] = form.get("everybody_name", "")
+        edits["everybody_relationship"] = form.get("everybody_relationship", "")
+        edits["everybody_personality"] = form.get("everybody_personality", "")
+        # Social hooks
+        hook_count = int(form.get("social_hook_count", "0"))
+        hooks = []
+        for i in range(hook_count):
+            platform = form.get(f"hook_platform_{i}", "")
+            text = form.get(f"hook_text_{i}", "")
+            if text.strip():
+                hooks.append({"platform": platform, "text": text})
+        if hooks:
+            edits["social_hooks"] = hooks
+        topic.danger_mode_edits = edits
+        from sqlalchemy.orm.attributes import flag_modified
+        flag_modified(topic, "danger_mode_edits")
+        db.commit()
 
     pipeline_run = create_phase_run(db, topic_id, 3)
     threading.Thread(

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Review Tangent Research — {{ topic.title }}{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Tangent Research Review</h1>
+    <p>{{ topic.title }} — Review and edit research findings for each tangent.</p>
+</div>
+
+{% if tangent_research and tangent_research.tangent_research %}
+<form method="POST" action="/topic/{{ topic.id }}/save-tangent-edits">
+    {% for tangent in tangent_research.tangent_research %}
+    <div class="research-section" style="margin-bottom: 1.5rem;">
+        <h3>{{ tangent.title | default('Tangent ' ~ loop.index) }}</h3>
+        <span class="badge badge-draft">{{ tangent.approved_depth | default('paragraph') }}</span>
+
+        <div class="form-group" style="margin-top: 1rem;">
+            <label>Key Facts</label>
+            <textarea name="tangent_{{ loop.index0 }}_key_facts" rows="3">{% if tangent.key_facts is iterable and tangent.key_facts is not string %}{{ tangent.key_facts | join('\n') }}{% else %}{{ tangent.key_facts | default('') }}{% endif %}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Connection to Main Topic</label>
+            <textarea name="tangent_{{ loop.index0 }}_connection" rows="2">{{ tangent.connection_to_main | default('') }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Key Contrast</label>
+            <textarea name="tangent_{{ loop.index0 }}_contrast" rows="2">{{ tangent.contrast_with_main | default('') }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Best Anecdote</label>
+            <textarea name="tangent_{{ loop.index0 }}_anecdote" rows="3">{{ tangent.best_anecdote | default('') }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Neuroscience Angle</label>
+            <textarea name="tangent_{{ loop.index0 }}_neuro" rows="2">{{ tangent.neuroscience_angle | default('') }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label>Sources (one per line)</label>
+            <textarea name="tangent_{{ loop.index0 }}_sources" rows="3" class="source-textarea">{% if tangent.sources is iterable and tangent.sources is not string %}{{ tangent.sources | join('\n') }}{% else %}{{ tangent.sources | default('') }}{% endif %}</textarea>
+        </div>
+    </div>
+    {% endfor %}
+
+    <input type="hidden" name="tangent_count" value="{{ tangent_research.tangent_research | length }}">
+
+    <div class="form-actions" style="margin-top: 1.5rem;">
+        <button type="submit" name="action" value="save" class="btn">Save Edits</button>
+        <button type="submit" name="action" value="approve" class="btn btn-primary">Approve & Start Phase 2</button>
+    </div>
+</form>
+
+<div style="margin-top: 1rem;">
+    <details>
+        <summary class="btn btn-sm btn-secondary">Rerun Tangent Research</summary>
+        <form method="POST" action="/topic/{{ topic.id }}/rerun-tangent-research" style="margin-top: 0.75rem;">
+            <div class="form-group">
+                <label>Guidance for rerun (optional)</label>
+                <textarea name="guidance" rows="3" placeholder="e.g., 'Focus more on the neuroscience angle for the first tangent' or 'Add more historical sources'"></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Rerun Research</button>
+        </form>
+    </details>
+</div>
+
+{% else %}
+<div class="empty-state">
+    <p>No tangent research data available.</p>
+    <a href="/topic/{{ topic.id }}/review-outline" class="btn">Back to Outline</a>
+</div>
+{% endif %}
+{% endblock %}

@@ -32,6 +32,12 @@
     <footer class="site-footer">
         <p>The Grand Unified Theory of X &mdash; Etymology, Neuroscience, Culture, and Everything In Between</p>
     </footer>
+    {% if is_admin %}
+    <form method="POST" action="/toggle-danger" class="danger-toggle-form">
+        <button type="submit" class="danger-toggle {% if danger_mode %}danger-active{% endif %}">do not toggle</button>
+    </form>
+    {% endif %}
+    {% if danger_mode %}<style>body{border-top:2px solid #dc2626;}</style>{% endif %}
     <script src="/static/js/app.js"></script>
     {% block scripts %}{% endblock %}
 </body>

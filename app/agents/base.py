@@ -125,6 +125,18 @@ class BaseAgent:
             sections.append("Apply this instruction to your output. This is a one-time directive — prioritize it.")
             sections.append("=== END INSTRUCTION ===\n")
 
+        # Danger mode context
+        if topic and topic.danger_mode_edits:
+            sections.append("=== DANGER_MODE=true ===")
+            sections.append("The user has made editorial edits. Honor their changes.")
+            import json as _json
+            edits_str = _json.dumps(topic.danger_mode_edits, default=str)
+            if len(edits_str) > 15000:
+                edits_str = edits_str[:15000] + "...(truncated)"
+            sections.append(f"User edits: {edits_str}")
+            sections.append("=== END DANGER MODE ===\n")
+            sections.append("IMPORTANT: Include inline citations [1], [2], etc. in your output and a 'sources' array with full references.")
+
         sections.append("=== YOUR TASK ===")
         sections.append("Analyze all the context above and produce your output as valid JSON.")
         sections.append("Follow the instructions in your system prompt exactly.")

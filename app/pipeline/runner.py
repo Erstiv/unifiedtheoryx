@@ -92,6 +92,24 @@ def execute_phase(db: Session, pipeline_run_id: int):
     prior_outputs = _gather_prior_outputs(db, pipeline_run.topic_id, pipeline_run.phase)
     agent_class_map = _get_agent_class_map()
 
+    # Danger mode: override prior outputs with user edits for Phase 3
+    if pipeline_run.phase == 3 and topic.danger_mode_edits:
+        edits = topic.danger_mode_edits
+        if edits.get("paper") and "paper_writer" in prior_outputs:
+            prior_outputs["paper_writer"]["paper"] = edits["paper"]
+        if edits.get("script") and "script_writer" in prior_outputs:
+            prior_outputs["script_writer"]["script"] = edits["script"]
+        if "title_hook" in prior_outputs:
+            if edits.get("title"):
+                prior_outputs["title_hook"]["title"] = edits["title"]
+            if edits.get("subtitle"):
+                prior_outputs["title_hook"]["subtitle"] = edits["subtitle"]
+            if edits.get("cold_open"):
+                prior_outputs["title_hook"]["cold_open"] = edits["cold_open"]
+            if edits.get("social_hooks"):
+                prior_outputs["title_hook"]["social_hooks"] = edits["social_hooks"]
+        logger.info("Danger mode: injected user edits into Phase 3 context")
+
     try:
         for agent_run in pipeline_run.agent_runs:
             agent_class = agent_class_map.get(agent_run.agent_name)
@@ -204,6 +222,18 @@ def _create_episode(db: Session, topic: Topic, prior_outputs: dict):
     episode.seo_keywords = show_notes_output.get("seo_keywords", [])
     episode.social_snippets = show_notes_output.get("social_snippets", [])
     episode.show_notes = show_notes_output.get("show_notes", "")
+    episode.citations_appendix = editor_output.get("citations_appendix", "")
+
+    # Apply danger mode title/subtitle/cold_open edits if they exist
+    edits = topic.danger_mode_edits or {}
+    if edits.get("title"):
+        episode.title = edits["title"]
+    if edits.get("subtitle"):
+        episode.subtitle = edits["subtitle"]
+    if edits.get("cold_open"):
+        episode.cold_open = edits["cold_open"]
+    if edits.get("social_hooks"):
+        episode.social_snippets = edits["social_hooks"]
     episode.status = EpisodeStatus.READY
     db.commit()
 

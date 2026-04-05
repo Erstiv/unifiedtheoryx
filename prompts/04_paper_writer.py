@@ -56,6 +56,14 @@ OUTPUT_SCHEMA = {
         "paper": {"type": "string"},
         "word_count": {"type": "integer"},
         "sections_included": {"type": "array", "items": {"type": "string"}},
+        "sources": {"type": "array", "items": {
+            "type": "object",
+            "properties": {
+                "number": {"type": "integer"},
+                "reference": {"type": "string"},
+                "relevance": {"type": "string"},
+            },
+        }},
         "knowledge_base_entries": {
             "type": "array",
             "items": {
