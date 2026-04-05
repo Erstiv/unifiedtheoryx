@@ -24,7 +24,7 @@
 
 <div id="tab-paper" class="tab-content active">
     <div class="prose episode-prose">
-        {{ episode.paper_content | default('No paper content.') }}
+        {{ episode.paper_content | default('No paper content.') | markdown }}
     </div>
 </div>
 
@@ -36,7 +36,7 @@
 
 <div id="tab-notes" class="tab-content">
     {% if episode.show_notes %}
-    <div class="prose">{{ episode.show_notes }}</div>
+    <div class="prose">{{ episode.show_notes | markdown }}</div>
     {% endif %}
 
     {% if episode.seo_title %}

@@ -32,7 +32,7 @@
             <span>{{ topic.page_count }} page{{ 's' if topic.page_count > 1 }}</span>
         </div>
         <div class="draft-body prose">
-            {{ paper.paper | default('No paper content yet.') }}
+            {{ paper.paper | default('No paper content yet.') | markdown }}
         </div>
     </div>
     {% else %}
