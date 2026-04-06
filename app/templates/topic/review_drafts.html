@@ -39,7 +39,7 @@
 <div class="draft-tabs">
     <button type="button" class="tab-btn active" onclick="showTab('paper')">Paper</button>
     <button type="button" class="tab-btn" onclick="showTab('script')">Script</button>
-    {% if danger_mode and topic.narrator_count >= 2 and script %}
+    {% if topic.narrator_count >= 2 and script %}
     <button type="button" class="tab-btn" onclick="showTab('cast')">Cast Bios</button>
     {% endif %}
     {% if title_data and title_data.social_hooks %}
@@ -94,11 +94,12 @@
     {% endif %}
 </div>
 
-{% if danger_mode and topic.narrator_count >= 2 and script %}
+{% if topic.narrator_count >= 2 and script %}
 <div id="tab-cast" class="tab-content">
     <div class="draft-panel">
-        <h3>Expert</h3>
         {% set cast = script.cast if script.cast is defined and script.cast else {} %}
+        <h3>Expert</h3>
+        {% if danger_mode %}
         <div class="form-row" style="grid-template-columns: 1fr 2fr;">
             <div class="form-group">
                 <label>Name</label>
@@ -113,9 +114,14 @@
             <label>Personality</label>
             <textarea name="expert_personality" rows="2" placeholder="e.g. Dry wit, gets excited about obscure studies">{{ cast.expert_personality | default('') }}</textarea>
         </div>
+        {% else %}
+        <p><strong>{{ cast.expert_name | default('(unnamed)') }}</strong> — {{ cast.expert_title | default('') }}</p>
+        {% if cast.expert_personality %}<p class="text-muted">{{ cast.expert_personality }}</p>{% endif %}
+        {% endif %}
 
         {% if topic.narrator_count >= 3 %}
         <h3 style="margin-top: 1.5rem;">The Everybody</h3>
+        {% if danger_mode %}
         <div class="form-row" style="grid-template-columns: 1fr 2fr;">
             <div class="form-group">
                 <label>Name</label>
@@ -130,6 +136,10 @@
             <label>Personality</label>
             <textarea name="everybody_personality" rows="2" placeholder="e.g. Confidently wrong, wholesome">{{ cast.everybody_personality | default('') }}</textarea>
         </div>
+        {% else %}
+        <p><strong>{{ cast.everybody_name | default('(unnamed)') }}</strong> — {{ cast.everybody_relationship | default('') }}</p>
+        {% if cast.everybody_personality %}<p class="text-muted">{{ cast.everybody_personality }}</p>{% endif %}
+        {% endif %}
         {% endif %}
     </div>
 </div>

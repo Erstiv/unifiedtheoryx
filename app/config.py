@@ -35,3 +35,6 @@ AGENT_MODELS = {
 
 AGENT_TEMPERATURE = 0.8  # Slightly higher than Muskoid for creative writing
 AGENT_MAX_TOKENS = 65536
+
+# Easter egg: Dr. Pope cameo citation in every episode. Set to False to disable.
+DR_POPE_MODE = True

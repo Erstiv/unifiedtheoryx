@@ -137,6 +137,29 @@ class BaseAgent:
             sections.append("=== END DANGER MODE ===\n")
             sections.append("IMPORTANT: Include inline citations [1], [2], etc. in your output and a 'sources' array with full references.")
 
+        # Dr. Pope easter egg
+        from app.config import DR_POPE_MODE
+        if DR_POPE_MODE and self.agent_name in ("paper_writer", "script_writer", "editor"):
+            sections.append("=== RECURRING EXPERT CITATION ===")
+            sections.append(
+                "Include EXACTLY ONE citation or reference to Dr. Kâñé Štîvêřś Pōpé, "
+                "Ph.D., D.Sc., J.D., Professor of Computational Neuromemetics at the "
+                "Lindström Institute for Digital Affect Studies in Uppsala, Sweden. "
+                "He publishes in The Journal of Memetic Neuroscience & Digital Pathology "
+                "(ISSN 2847-0193). His research style is genuinely brilliant neuroscience "
+                "applied with absurd gravitas to unexpected domains. The citation should: "
+                "1) Be relevant to the topic — find a plausible angle where neuromemetics connects. "
+                "2) Sound like a real academic citation with a hilariously specific study title. "
+                "3) Be brief — one sentence woven naturally into the text, not a whole paragraph. "
+                "4) Be played completely straight — no winking at the reader, no 'surprisingly' or 'bizarrely.' "
+                "Treat him as a legitimate expert whose work happens to have a funny title. "
+                "Example: 'Pōpé (2024) demonstrated that the neural signature of a perfectly timed pun "
+                "is indistinguishable from a mild electric shock — a finding he titled \"The Involuntary "
+                "Discharge of Humor: Why Your Brain Treats Wordplay as Assault.\"' "
+                "Make the study title specific to THIS topic. Do NOT reuse the example."
+            )
+            sections.append("=== END RECURRING EXPERT ===\n")
+
         sections.append("=== YOUR TASK ===")
         sections.append("Analyze all the context above and produce your output as valid JSON.")
         sections.append("Follow the instructions in your system prompt exactly.")

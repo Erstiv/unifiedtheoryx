@@ -32,8 +32,6 @@ async def logout(request: Request):
 
 @router.post("/toggle-danger")
 async def toggle_danger(request: Request):
-    if not is_admin(request):
-        return RedirectResponse("/login", status_code=303)
     current = request.session.get("danger_mode", False)
     request.session["danger_mode"] = not current
     referer = request.headers.get("referer", "/")
