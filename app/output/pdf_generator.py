@@ -201,6 +201,41 @@ def _get_script_styles():
     return styles
 
 
+def _substitute_cast_names(script: str) -> str:
+    """If the script has a [CAST] block defining character names, replace
+    generic role tags ([HOST], [EXPERT], [EVERYBODY]) with the actual first
+    name in CAPS so the dialogue reads with real names.
+
+    Looks for lines like:
+        HOST: Dr. Caroline Wallis ...
+        EXPERT: Marco Bellini, ...
+        EVERYBODY: Sue Hartwell, ...
+    inside a [CAST] ... [/CAST] block.
+    """
+    cast_match = re.search(r"\[CAST\](.*?)\[/CAST\]", script, re.DOTALL | re.IGNORECASE)
+    if not cast_match:
+        return script
+
+    cast_text = cast_match.group(1)
+    name_map = {}
+    for role in ("HOST", "EXPERT", "EVERYBODY", "NARRATOR"):
+        m = re.search(rf"{role}\s*:\s*(?:Dr\.?\s+|Prof\.?\s+|Mr\.?\s+|Ms\.?\s+|Mrs\.?\s+)?([A-Z][a-zA-Z'\-]+)",
+                      cast_text)
+        if m:
+            name_map[role] = m.group(1).upper()
+
+    if not name_map:
+        return script
+
+    def _replace(match):
+        tag = match.group(1).upper()
+        if tag in name_map:
+            return f"[{name_map[tag]}]:"
+        return match.group(0)
+
+    return re.sub(r"\[(HOST|EXPERT|EVERYBODY|NARRATOR)\]:?", _replace, script)
+
+
 def generate_script_pdf(title: str, script: str, output_path: str):
     """Generate a screenplay-format PDF for the podcast script."""
     doc = SimpleDocTemplate(
@@ -221,6 +256,10 @@ def generate_script_pdf(title: str, script: str, output_path: str):
         ParagraphStyle("ScriptSub", fontName="Courier", fontSize=10, textColor=MUTED, alignment=TA_CENTER)
     ))
     story.append(Spacer(1, 24))
+
+    # Substitute generic role labels with actual cast names if a [CAST] block is present.
+    # Old scripts use [HOST]/[EXPERT]/[EVERYBODY]; new scripts already use names directly.
+    script = _substitute_cast_names(script) if script else script
 
     if script:
         for line in script.split("\n"):

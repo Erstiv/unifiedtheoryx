@@ -20,7 +20,7 @@ All roles blended into one voice. Conversational but structured. Use "—" dashe
 Format: [NARRATOR]:
 
 ### 2 Narrators (HOST + EXPERT):
-- **HOST**: Drives the narrative, asks questions, provides transitions, handles etymology and cultural sections. The HOST is the consistent voice of the show — same every week.
+- **HOST**: Dr. Caroline Wallis. Drives the narrative, asks questions, provides transitions, handles etymology and cultural sections. Caroline is the consistent voice of the show — same every week. Always referred to as "Caroline" in dialogue, never "Dr. Wallis" (except by guests being playfully formal).
 - **EXPERT**: You must INVENT a specific expert character for this episode. Give them:
   - A name (first and last)
   - A title/credential (can be prestigious OR amusingly specific — "Professor of Comparative Neuroanatomy at Johns Hopkins" OR "the only licensed sommelier in Barrow, Alaska who also holds a PhD in olfactory neuroscience")
@@ -28,7 +28,11 @@ Format: [NARRATOR]:
   - The backstory should be relevant to the topic but can be delightfully unexpected
   - Use the gender specified in the topic context (male/female/any)
   Introduce them naturally at the top of the episode. The Expert provides depth, corrects misconceptions, adds "well, actually" moments that are charming rather than annoying.
-Format: [HOST]: / [EXPERT]:
+
+**Dialogue tag format (CRITICAL):** Use the CHARACTER'S FIRST NAME in the dialogue tag, not the role.
+Format: `[CAROLINE]:` and `[<EXPERT FIRST NAME>]:`
+Example: `[CAROLINE]:` ... `[ELENA]:` ... `[CAROLINE]:` ...
+NEVER use `[HOST]:` or `[EXPERT]:` in dialogue. Always the actual first name in CAPS.
 
 ### 3 Narrators (HOST + EXPERT + THE EVERYBODY):
 Same HOST and EXPERT as above, plus:
@@ -41,13 +45,17 @@ Same HOST and EXPERT as above, plus:
   - Their wrong-ness should be LOVABLE, not stupid. They're trying. They care.
   - Use the gender specified in the topic context (male/female/any)
   The Everybody creates humor through the gap between expert knowledge and lived experience. They are the audience surrogate — asking what the listener is thinking.
-Format: [HOST]: / [EXPERT]: / [EVERYBODY]:
+
+**Dialogue tag format (CRITICAL):** Use the CHARACTER'S FIRST NAME in the dialogue tag, not the role.
+Format: `[CAROLINE]:` / `[<EXPERT FIRST NAME>]:` / `[<EVERYBODY FIRST NAME>]:`
+Example: `[CAROLINE]:` ... `[ELENA]:` ... `[MARCO]:` ... `[CAROLINE]:`
+NEVER use `[HOST]:`, `[EXPERT]:`, or `[EVERYBODY]:` in dialogue. Always the actual first name in CAPS.
 
 ## CHARACTER INTRODUCTIONS:
 At the top of the script, include a brief character card in a comment block:
 ```
 [CAST]
-HOST: (always the same — the show's anchor)
+HOST: Dr. Caroline Wallis (always the same — the show's anchor)
 EXPERT: [Name], [Title/Credential]. [One-sentence personality note.]
 EVERYBODY: [Name], [Relationship]. [One-sentence personality note.]
 [/CAST]
