@@ -24,7 +24,7 @@ _AGENT_CLASS_MAP = None
 def _get_agent_class_map():
     global _AGENT_CLASS_MAP
     if _AGENT_CLASS_MAP is None:
-        _AGENT_CLASS_MAP = {}
+        import importlib
         agent_imports = {
             AgentName.DEEP_RESEARCHER: ("app.agents.deep_researcher", "DeepResearcherAgent"),
             AgentName.TANGENT_FINDER: ("app.agents.tangent_finder", "TangentFinderAgent"),
@@ -35,13 +35,24 @@ def _get_agent_class_map():
             AgentName.EDITOR: ("app.agents.editor", "EditorAgent"),
             AgentName.SHOW_NOTES: ("app.agents.show_notes", "ShowNotesAgent"),
         }
+        built = {}
+        failed = []
         for agent_name, (module_path, class_name) in agent_imports.items():
             try:
-                import importlib
                 mod = importlib.import_module(module_path)
-                _AGENT_CLASS_MAP[agent_name] = getattr(mod, class_name)
-            except (ImportError, AttributeError):
-                pass
+                built[agent_name] = getattr(mod, class_name)
+            except (ImportError, AttributeError) as e:
+                # Log the real cause — don't swallow it silently.
+                logger.error(f"Failed to load agent {agent_name.value} from {module_path}: {e!r}")
+                failed.append(agent_name.value)
+        if failed:
+            # Never cache an incomplete map: a transient import failure would
+            # otherwise poison this process permanently (every run fails $0/0
+            # tokens until a manual restart). Return what we have so the next
+            # call rebuilds and self-heals.
+            logger.error(f"Agent class map incomplete, not caching. Missing: {failed}")
+            return built
+        _AGENT_CLASS_MAP = built
     return _AGENT_CLASS_MAP
 
 
