@@ -95,15 +95,17 @@ async def review_outline(request: Request, topic_id: int, db: Session = Depends(
 
     for run in topic.pipeline_runs:
         for ar in run.agent_runs:
-            if ar.agent_name == AgentName.DEEP_RESEARCHER and ar.output_json:
+            # Use `is not None` instead of truthy — an agent that produced an
+            # empty dict ({}) would be falsy and make the page think it never ran.
+            if ar.agent_name == AgentName.DEEP_RESEARCHER and ar.output_json is not None:
                 research_output = ar.output_json
-            if ar.agent_name == AgentName.TANGENT_FINDER and ar.output_json:
+            if ar.agent_name == AgentName.TANGENT_FINDER and ar.output_json is not None:
                 tangent_output = ar.output_json
-            if ar.agent_name == AgentName.TANGENT_RESEARCHER and ar.output_json:
-                tangent_research_output = ar.output_json
+            if ar.agent_name == AgentName.TANGENT_RESEARCHER and ar.status == RunStatus.COMPLETED:
+                tangent_research_output = ar.output_json if ar.output_json is not None else {}
 
     tangents = tangent_output.get("tangents", []) if tangent_output else []
-    tangents_researched = topic.status != TopicStatus.PAUSED_PHASE_1 or tangent_research_output is not None
+    tangents_researched = tangent_research_output is not None
 
     return templates.TemplateResponse(request, "topic/review_outline.html", {
         "topic": topic,
@@ -129,7 +131,7 @@ async def approve_tangents(request: Request, topic_id: int, db: Session = Depend
     tangent_output = None
     for run in topic.pipeline_runs:
         for ar in run.agent_runs:
-            if ar.agent_name == AgentName.TANGENT_FINDER and ar.output_json:
+            if ar.agent_name == AgentName.TANGENT_FINDER and ar.output_json is not None:
                 tangent_output = ar.output_json
                 break
 
@@ -201,13 +203,18 @@ async def tangent_status_api(topic_id: int, db: Session = Depends(get_db)):
     if not topic:
         return JSONResponse({"error": "Not found"}, status_code=404)
 
-    # Check if tangent researcher has completed
+    # Check if tangent researcher has completed (check status, not output_json —
+    # an empty-dict output would be falsy and leave polling stuck forever)
     done = False
+    failed = False
     for run in topic.pipeline_runs:
         for ar in run.agent_runs:
-            if ar.agent_name == AgentName.TANGENT_RESEARCHER and ar.output_json:
-                done = True
-    return JSONResponse({"done": done, "status": topic.status.value})
+            if ar.agent_name == AgentName.TANGENT_RESEARCHER:
+                if ar.status == RunStatus.COMPLETED:
+                    done = True
+                elif ar.status == RunStatus.FAILED:
+                    failed = True
+    return JSONResponse({"done": done, "failed": failed, "status": topic.status.value})
 
 
 @router.get("/topic/{topic_id}/review-tangent-research", response_class=HTMLResponse)
@@ -220,14 +227,20 @@ async def review_tangent_research(request: Request, topic_id: int, db: Session =
     tangent_research_output = None
     for run in topic.pipeline_runs:
         for ar in run.agent_runs:
-            if ar.agent_name == AgentName.TANGENT_RESEARCHER and ar.output_json:
+            if ar.agent_name == AgentName.TANGENT_RESEARCHER and ar.output_json is not None:
                 tangent_research_output = ar.output_json
 
-    # Normalize: Gemini sometimes uses "tangents" instead of "tangent_research"
+    # Normalize: Gemini uses different keys every time
     tangent_items = []
     if tangent_research_output:
-        tangent_items = (tangent_research_output.get("tangent_research") or
-                         tangent_research_output.get("tangents") or [])
+        for key in ("tangent_research", "tangents", "researched_tangents", "tangent_results", "research"):
+            items = tangent_research_output.get(key)
+            if items and isinstance(items, list) and len(items) > 0:
+                tangent_items = items
+                break
+        # If still empty, check if the output itself is a list
+        if not tangent_items and isinstance(tangent_research_output, list):
+            tangent_items = tangent_research_output
 
     return templates.TemplateResponse(request, "topic/review_tangent_research.html", {
         "topic": topic,
@@ -313,21 +326,34 @@ async def review_drafts(request: Request, topic_id: int, db: Session = Depends(g
     paper_output = None
     script_output = None
     title_output = None
+    failed_agents = []  # [{run_id, agent_name, error_message}]
+    latest_run_id = None
 
     for run in topic.pipeline_runs:
+        latest_run_id = run.id  # last one wins
         for ar in run.agent_runs:
-            if ar.agent_name == AgentName.PAPER_WRITER and ar.output_json:
+            if ar.agent_name == AgentName.PAPER_WRITER and ar.output_json is not None:
                 paper_output = ar.output_json
-            if ar.agent_name == AgentName.SCRIPT_WRITER and ar.output_json:
+            if ar.agent_name == AgentName.SCRIPT_WRITER and ar.output_json is not None:
                 script_output = ar.output_json
-            if ar.agent_name == AgentName.TITLE_HOOK and ar.output_json:
+            if ar.agent_name == AgentName.TITLE_HOOK and ar.output_json is not None:
                 title_output = ar.output_json
+            if ar.status == RunStatus.FAILED:
+                failed_agents.append({
+                    "run_id": run.id,
+                    "agent_name": ar.agent_name.value,
+                    "display_name": ar.agent_name.value.replace("_", " ").title(),
+                    "error": (ar.error_message or "")[:300],
+                })
 
+    from app.caroline import CAROLINE
     return templates.TemplateResponse(request, "topic/review_drafts.html", {
         "topic": topic,
         "paper": paper_output,
         "script": script_output,
         "title_data": title_output,
+        "caroline": CAROLINE,
+        "failed_agents": failed_agents,
     })
 
 
@@ -348,12 +374,12 @@ async def approve_drafts(request: Request, topic_id: int, db: Session = Depends(
         edits["title"] = form.get("edit_title", "")
         edits["subtitle"] = form.get("edit_subtitle", "")
         edits["cold_open"] = form.get("edit_cold_open", "")
-        edits["expert_name"] = form.get("expert_name", "")
-        edits["expert_title"] = form.get("expert_title", "")
-        edits["expert_personality"] = form.get("expert_personality", "")
-        edits["everybody_name"] = form.get("everybody_name", "")
-        edits["everybody_relationship"] = form.get("everybody_relationship", "")
-        edits["everybody_personality"] = form.get("everybody_personality", "")
+        # Capture every expert_* and everybody_* field (full method-actor sheets)
+        for key in form.keys():
+            if (key.startswith("expert_") or key.startswith("everybody_")) and key != "social_hook_count":
+                val = form.get(key, "")
+                if val != "":
+                    edits[key] = val
         # Social hooks
         hook_count = int(form.get("social_hook_count", "0"))
         hooks = []

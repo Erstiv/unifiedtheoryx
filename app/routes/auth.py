@@ -36,3 +36,11 @@ async def toggle_danger(request: Request):
     request.session["danger_mode"] = not current
     referer = request.headers.get("referer", "/")
     return RedirectResponse(referer, status_code=303)
+
+
+@router.post("/toggle-pope")
+async def toggle_pope(request: Request):
+    current = request.session.get("pope_mode", False)
+    request.session["pope_mode"] = not current
+    referer = request.headers.get("referer", "/")
+    return RedirectResponse(referer, status_code=303)

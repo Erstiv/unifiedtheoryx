@@ -45,6 +45,7 @@ Remove ALL instances of:
 - Are key terms repeated for listeners?
 - Do [DIRECTION] tags enhance or clutter?
 - Do timing markers align with target length?
+- If the cast metadata includes expert/everybody character names, titles, relationships, or personalities, PRESERVE them exactly as given — the user may have hand-edited these. Do not rename, re-title, or alter character identities.
 
 **Pass 6: Citation Cleanup (when DANGER_MODE=true)**
 If the paper or script contains inline citation markers like [1], [2], etc.:

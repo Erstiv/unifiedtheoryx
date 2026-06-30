@@ -36,6 +36,8 @@ async def dashboard(request: Request, db: Session = Depends(get_db)):
 
 @router.get("/topic/new", response_class=HTMLResponse)
 async def new_topic_form(request: Request):
+    if not is_admin(request):
+        return RedirectResponse("/login", status_code=303)
     return templates.TemplateResponse(request, "topic/new.html")
 
 
@@ -51,11 +53,14 @@ async def create_topic(
     everybody_gender: str = Form("any"),
     db: Session = Depends(get_db),
 ):
+    if not is_admin(request):
+        return RedirectResponse("/login", status_code=303)
     slug = _slugify(title)
     existing = db.query(Topic).filter(Topic.slug == slug).first()
     if existing:
         slug = f"{slug}-{db.query(Topic).count() + 1}"
 
+    pope_mode = request.session.get("pope_mode", False) if hasattr(request, "session") else False
     topic = Topic(
         title=title,
         slug=slug,
@@ -65,6 +70,7 @@ async def create_topic(
         narrator_count=max(1, min(3, narrator_count)),
         expert_gender=expert_gender if expert_gender in ("male", "female", "any") else "any",
         everybody_gender=everybody_gender if everybody_gender in ("male", "female", "any") else "any",
+        pope_mode=pope_mode,
     )
     db.add(topic)
     db.commit()

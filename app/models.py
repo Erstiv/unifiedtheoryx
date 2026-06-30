@@ -97,6 +97,7 @@ class Topic(Base):
     expert_gender = Column(String(20), default="any")  # "male", "female", "any"
     everybody_gender = Column(String(20), default="any")  # "male", "female", "any"
     danger_mode_edits = Column(JSON)  # Stores user edits from danger mode reviews
+    pope_mode = Column(Boolean, default=False)  # Per-topic Dr. Pope easter egg toggle
     status = Column(SQLEnum(TopicStatus), default=TopicStatus.DRAFT)
     current_phase = Column(Integer, default=0)
     approved_tangents = Column(JSON)  # [{title, depth, description}, ...]

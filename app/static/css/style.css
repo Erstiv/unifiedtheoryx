@@ -372,6 +372,47 @@ input:focus, textarea:focus, select:focus { outline: none; border-color: var(--a
     50% { box-shadow: 0 0 12px rgba(220,38,38,0.9); }
 }
 
+/* Character sheets (Cast Bios tab) */
+.character-sheet {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--white);
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.5rem;
+    page-break-inside: avoid;
+}
+.character-sheet.caroline-sheet {
+    border-color: #d4a574;
+    background: #fdfaf3;
+}
+.character-sheet-header { border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; margin-bottom: 0.75rem; }
+.character-sheet-header h3 { margin: 0; font-size: 1.25rem; display: flex; align-items: baseline; gap: 0.5rem; flex-wrap: wrap; }
+.cs-tag { font-size: 0.65rem; font-weight: normal; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); border: 1px solid var(--border); padding: 1px 6px; border-radius: 3px; }
+.cs-subtitle { margin: 0.25rem 0 0; color: var(--text-muted); font-style: italic; font-size: 0.95rem; }
+.cs-fields { display: grid; grid-template-columns: 180px 1fr; gap: 0.4rem 1rem; margin: 0; }
+.cs-fields dt { font-weight: 600; color: var(--text-muted); font-size: 0.85rem; }
+.cs-fields dd { margin: 0; font-size: 0.95rem; line-height: 1.5; }
+.cs-note { margin-top: 0.75rem; font-size: 0.8rem; color: var(--text-muted); font-style: italic; }
+@media print {
+    .character-sheet { border: 1px solid #999; box-shadow: none; }
+    .site-header, .site-footer, .danger-toggle-form, .pope-toggle-form, .tabs, button, .form-group input, .form-group textarea { display: none !important; }
+    .tab-content { display: block !important; }
+}
+
+/* Pope Mode Toggle — sits just above the danger zone button */
+.pope-toggle-form { position: fixed; bottom: 28px; right: 8px; z-index: 9999; }
+.pope-toggle {
+    background: none; border: none; font-size: 9px; color: var(--text-muted);
+    opacity: 0.07; cursor: pointer; font-family: monospace; padding: 2px 4px;
+    border-radius: 2px;
+}
+.pope-toggle:hover { opacity: 0.3; }
+.pope-toggle.pope-active {
+    opacity: 1; background: var(--error); color: var(--white);
+    padding: 3px 8px; border-radius: 3px; font-weight: bold;
+    animation: danger-pulse 2s ease-in-out infinite;
+}
+
 /* Danger Mode Editing */
 .edit-textarea {
     width: 100%; font-family: Georgia, serif; font-size: 0.95rem; line-height: 1.6;

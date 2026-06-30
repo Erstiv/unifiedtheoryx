@@ -108,6 +108,12 @@ def execute_phase(db: Session, pipeline_run_id: int):
                 prior_outputs["title_hook"]["cold_open"] = edits["cold_open"]
             if edits.get("social_hooks"):
                 prior_outputs["title_hook"]["social_hooks"] = edits["social_hooks"]
+        # Inject ALL character edits into script_writer cast data (full method-actor sheets)
+        if "script_writer" in prior_outputs:
+            cast = prior_outputs["script_writer"].setdefault("cast", {})
+            for field, val in edits.items():
+                if (field.startswith("expert_") or field.startswith("everybody_")) and val:
+                    cast[field] = val
         logger.info("Danger mode: injected user edits into Phase 3 context")
 
     try:
@@ -148,6 +154,14 @@ def execute_phase(db: Session, pipeline_run_id: int):
         pipeline_run.status = RunStatus.FAILED
         pipeline_run.error_message = str(e)
         pipeline_run.completed_at = datetime.now(timezone.utc)
+        # Reset topic status so the UI doesn't show "Pipeline running..." forever
+        if pipeline_run.phase == 1:
+            topic.status = TopicStatus.PAUSED_PHASE_1
+        elif pipeline_run.phase == 2:
+            topic.status = TopicStatus.PAUSED_PHASE_2
+        else:
+            # Phase 3 failed — send back to paused_phase_2 so user can re-approve/retry
+            topic.status = TopicStatus.PAUSED_PHASE_2
         db.commit()
         raise
 
@@ -249,7 +263,7 @@ def _gather_prior_outputs(db: Session, topic_id: int, current_phase: int) -> dic
 
     for run in previous_runs:
         for ar in run.agent_runs:
-            if ar.status == RunStatus.COMPLETED and ar.output_json:
+            if ar.status == RunStatus.COMPLETED and ar.output_json is not None:
                 prior_outputs[ar.agent_name.value] = ar.output_json
 
     # Also gather from current phase completed agents (for tangent researcher)
@@ -260,7 +274,7 @@ def _gather_prior_outputs(db: Session, topic_id: int, current_phase: int) -> dic
         ).all()
         for run in current_runs:
             for ar in run.agent_runs:
-                if ar.status == RunStatus.COMPLETED and ar.output_json:
+                if ar.status == RunStatus.COMPLETED and ar.output_json is not None:
                     prior_outputs[ar.agent_name.value] = ar.output_json
 
     return prior_outputs
@@ -294,22 +308,65 @@ def rerun_single_agent(db: Session, pipeline_run_id: int, agent_name: AgentName,
     target.completed_at = None
     target.model_used = None
     target.rerun_guidance = guidance
+    pipeline_run.status = RunStatus.RUNNING
     db.commit()
 
     prior_outputs = _gather_prior_outputs(db, pipeline_run.topic_id, pipeline_run.phase)
     for ar in pipeline_run.agent_runs:
-        if ar.sequence_order < target.sequence_order and ar.status == RunStatus.COMPLETED and ar.output_json:
+        if ar.sequence_order < target.sequence_order and ar.status == RunStatus.COMPLETED and ar.output_json is not None:
             prior_outputs[ar.agent_name.value] = ar.output_json
 
     agent_class_map = _get_agent_class_map()
-    agent_class = agent_class_map.get(agent_name)
-    if not agent_class:
-        raise ValueError(f"No agent class for {agent_name.value}")
 
-    logger.info(f"Rerunning: {agent_name.value}" + (f" with guidance" if guidance else ""))
-    agent = agent_class(db=db, topic_id=pipeline_run.topic_id, agent_run=target)
-    agent.run(prior_outputs)
-    logger.info(f"Rerun complete: {agent_name.value}")
+    # Run the target agent and all subsequent pending agents in sequence
+    run_from = target.sequence_order
+    agents_to_run = sorted(
+        [ar for ar in pipeline_run.agent_runs if ar.sequence_order >= run_from],
+        key=lambda a: a.sequence_order
+    )
+
+    topic = db.query(Topic).filter(Topic.id == pipeline_run.topic_id).first()
+
+    try:
+        for ar in agents_to_run:
+            if ar.status == RunStatus.COMPLETED and ar.output_json is not None and ar.sequence_order != run_from:
+                prior_outputs[ar.agent_name.value] = ar.output_json
+                continue
+            agent_class = agent_class_map.get(ar.agent_name)
+            if not agent_class:
+                raise ValueError(f"No agent class for {ar.agent_name.value}")
+            logger.info(f"Rerunning: {ar.agent_name.value}" + (" with guidance" if guidance and ar == target else ""))
+            agent = agent_class(db=db, topic_id=pipeline_run.topic_id, agent_run=ar)
+            output = agent.run(prior_outputs)
+            prior_outputs[ar.agent_name.value] = output
+            logger.info(f"Rerun complete: {ar.agent_name.value}")
+
+        # Mark phase done
+        if pipeline_run.phase == 1:
+            pipeline_run.status = RunStatus.PAUSED_FOR_REVIEW
+            topic.status = TopicStatus.PAUSED_PHASE_1
+        elif pipeline_run.phase == 2:
+            pipeline_run.status = RunStatus.PAUSED_FOR_REVIEW
+            topic.status = TopicStatus.PAUSED_PHASE_2
+        else:
+            pipeline_run.status = RunStatus.COMPLETED
+            topic.status = TopicStatus.COMPLETED
+            _create_episode(db, topic, prior_outputs)
+        pipeline_run.completed_at = datetime.now(timezone.utc)
+        db.commit()
+
+    except Exception as e:
+        logger.error(f"Rerun failed: {e}")
+        pipeline_run.status = RunStatus.FAILED
+        pipeline_run.error_message = str(e)
+        if pipeline_run.phase == 1:
+            topic.status = TopicStatus.PAUSED_PHASE_1
+        elif pipeline_run.phase == 2:
+            topic.status = TopicStatus.PAUSED_PHASE_2
+        else:
+            topic.status = TopicStatus.PAUSED_PHASE_2
+        db.commit()
+        raise
 
 
 def get_pipeline_status(db: Session, pipeline_run_id: int) -> dict:

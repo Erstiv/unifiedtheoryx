@@ -37,4 +37,4 @@ AGENT_TEMPERATURE = 0.8  # Slightly higher than Muskoid for creative writing
 AGENT_MAX_TOKENS = 65536
 
 # Easter egg: Dr. Pope cameo citation in every episode. Set to False to disable.
-DR_POPE_MODE = True
+DR_POPE_MODE = False  # Legacy fallback. Per-topic Topic.pope_mode is the real switch (set via "pope me" button at topic creation).

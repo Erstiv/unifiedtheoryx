@@ -8,10 +8,40 @@ from pathlib import Path
 
 from app.database import init_db, SessionLocal
 from app.config import SESSION_SECRET
-from app.models import BibleEntry, BibleScope  # noqa: F401
+from app.models import BibleEntry, BibleScope, PipelineRun, Topic, RunStatus, TopicStatus  # noqa: F401
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(name)s] %(levelname)s: %(message)s")
 logger = logging.getLogger("unified_theory")
+
+
+def _cleanup_stuck_runs():
+    """On startup, mark any RUNNING pipeline runs/agent_runs as FAILED (they died mid-flight)."""
+    from app.models import AgentRun
+    db = SessionLocal()
+    try:
+        count = 0
+        # Fix stuck pipeline runs
+        stuck_runs = db.query(PipelineRun).filter(PipelineRun.status == RunStatus.RUNNING).all()
+        for run in stuck_runs:
+            run.status = RunStatus.FAILED
+            run.error_message = "Server restarted while this run was in progress."
+            topic = db.query(Topic).filter(Topic.id == run.topic_id).first()
+            if topic and topic.status == TopicStatus.RUNNING:
+                topic.status = TopicStatus.PAUSED_PHASE_1 if run.phase == 1 else TopicStatus.PAUSED_PHASE_2
+            count += 1
+
+        # Also fix orphaned RUNNING agent_runs inside already-failed pipeline runs
+        stuck_agents = db.query(AgentRun).filter(AgentRun.status == RunStatus.RUNNING).all()
+        for ar in stuck_agents:
+            ar.status = RunStatus.FAILED
+            ar.error_message = "Server restarted while this agent was running."
+            count += 1
+
+        if count:
+            db.commit()
+            logger.warning(f"Cleaned up {count} stuck run(s) from previous session.")
+    finally:
+        db.close()
 
 
 @asynccontextmanager
@@ -19,6 +49,7 @@ async def lifespan(app: FastAPI):
     logger.info("Initializing database...")
     init_db()
     _seed_knowledge_base()
+    _cleanup_stuck_runs()
     logger.info("The Grand Unified Theory of X is ready.")
     yield
 

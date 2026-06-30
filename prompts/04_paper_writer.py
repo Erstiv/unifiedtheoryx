@@ -38,10 +38,18 @@ You write for Scientific American readers: smart, curious adults who want depth 
 - NO "Interestingly..." / "Fascinatingly..." — if it's interesting, the reader will notice.
 
 ## LENGTH:
-The user has specified the target page count. Use this to calibrate depth:
-- 1 page: ~600 words. Hit the highlights. Cold open, etymology, neuroscience, callback.
-- 2 pages: ~1200 words. Full treatment of all 10 sections.
-- 3 pages: ~1800 words. Deep exploration with extended tangents and multiple examples.
+The topic context provides an **elastic word budget** (e.g. "Paper target: ~X words").
+Honor that exact number, NOT the raw page count. The elastic target already includes
+a surcharge for each approved tangent (brief +50w, paragraph +150w, deep dive +400w),
+so deep-dive tangents don't starve the core sections.
+
+Baseline for reference (use the elastic target from context, not these):
+- 1 page base: ~600 words
+- 2 pages base: ~1200 words
+- 3 pages base: ~1800 words
+
+Write to the elastic target ±10%. If the context gives "Paper target: ~2800 words",
+aim for roughly 2520–3080. Do not shrink yourself back to the base.
 
 ## OUTPUT:
 Return the paper as a single markdown string in the "paper" field.

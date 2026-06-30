@@ -138,6 +138,7 @@ def _inject_admin(request, name, context=None, **kwargs):
         context = {}
     context["is_admin"] = request.session.get("is_admin", False) if hasattr(request, "session") else False
     context["danger_mode"] = request.session.get("danger_mode", False) if hasattr(request, "session") else False
+    context["pope_mode"] = request.session.get("pope_mode", False) if hasattr(request, "session") else False
     return _orig(request, name, context, **kwargs)
 
 _base.TemplateResponse = _inject_admin

@@ -1,4 +1,5 @@
 """PDF Export — editorial magazine layout for papers, screenplay format for scripts."""
+import os
 import re
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -9,6 +10,62 @@ from reportlab.platypus import (
     Table, TableStyle, KeepTogether,
 )
 from reportlab.lib.enums import TA_LEFT, TA_CENTER, TA_RIGHT
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+
+# Register DejaVu fonts so non-ASCII characters (Dr. Pope's accents, etc.) render
+# instead of showing as black boxes. ReportLab's built-in Times/Helvetica/Courier
+# only cover Latin-1 — we map them to DejaVu equivalents that have full Unicode.
+_FONT_DIR_CANDIDATES = [
+    "/usr/share/fonts/truetype/dejavu",
+    "/Library/Fonts",
+    "/System/Library/Fonts/Supplemental",
+]
+_FONT_FILES = {
+    "UTSerif":         ["DejaVuSerif.ttf"],
+    "UTSerif-Bold":    ["DejaVuSerif-Bold.ttf"],
+    "UTSerif-Italic":  ["DejaVuSerif-Italic.ttf", "DejaVuSerif-Oblique.ttf"],
+    "UTMono":          ["DejaVuSansMono.ttf"],
+    "UTMono-Bold":     ["DejaVuSansMono-Bold.ttf"],
+    "UTMono-Oblique":  ["DejaVuSansMono-Oblique.ttf"],
+}
+_fonts_registered = False
+def _register_fonts():
+    global _fonts_registered
+    if _fonts_registered:
+        return
+    for ps_name, candidates in _FONT_FILES.items():
+        for fname in candidates:
+            for d in _FONT_DIR_CANDIDATES:
+                path = os.path.join(d, fname)
+                if os.path.exists(path):
+                    try:
+                        pdfmetrics.registerFont(TTFont(ps_name, path))
+                    except Exception:
+                        pass
+                    break
+            else:
+                continue
+            break
+    _fonts_registered = True
+
+_register_fonts()
+
+# Font name aliases — fall back to built-ins if DejaVu wasn't found.
+def _font(name):
+    fallbacks = {
+        "Times-Roman":   "UTSerif",
+        "Times-Bold":    "UTSerif-Bold",
+        "Times-Italic":  "UTSerif-Italic",
+        "Courier":         "UTMono",
+        "Courier-Bold":    "UTMono-Bold",
+        "Courier-Oblique": "UTMono-Oblique",
+        "Helvetica":       "UTSerif",
+    }
+    target = fallbacks.get(name, name)
+    if target in pdfmetrics.getRegisteredFontNames():
+        return target
+    return name
 
 # Brand colors
 NAVY = HexColor("#1a1f36")
@@ -24,7 +81,7 @@ def _get_paper_styles():
 
     styles.add(ParagraphStyle(
         name="EpisodeTitle",
-        fontName="Times-Bold",
+        fontName=_font("Times-Bold"),
         fontSize=28,
         leading=34,
         textColor=NAVY,
@@ -33,7 +90,7 @@ def _get_paper_styles():
     ))
     styles.add(ParagraphStyle(
         name="EpisodeSubtitle",
-        fontName="Times-Italic",
+        fontName=_font("Times-Italic"),
         fontSize=14,
         leading=18,
         textColor=MUTED,
@@ -41,7 +98,7 @@ def _get_paper_styles():
     ))
     styles.add(ParagraphStyle(
         name="SectionHead",
-        fontName="Times-Bold",
+        fontName=_font("Times-Bold"),
         fontSize=16,
         leading=20,
         textColor=NAVY,
@@ -50,7 +107,7 @@ def _get_paper_styles():
     ))
     styles.add(ParagraphStyle(
         name="BodyText_Custom",
-        fontName="Times-Roman",
+        fontName=_font("Times-Roman"),
         fontSize=11,
         leading=16,
         textColor=DARK_TEXT,
@@ -58,7 +115,7 @@ def _get_paper_styles():
     ))
     styles.add(ParagraphStyle(
         name="PullQuote",
-        fontName="Times-Italic",
+        fontName=_font("Times-Italic"),
         fontSize=13,
         leading=18,
         textColor=AMBER,
@@ -69,7 +126,7 @@ def _get_paper_styles():
     ))
     styles.add(ParagraphStyle(
         name="Footer",
-        fontName="Helvetica",
+        fontName=_font("Helvetica"),
         fontSize=8,
         textColor=MUTED,
         alignment=TA_CENTER,
@@ -132,7 +189,7 @@ def generate_paper_pdf(title: str, subtitle: str, content: str, output_path: str
     story.append(Spacer(1, 12))
     story.append(Paragraph(
         "The Grand Unified Theory of X",
-        ParagraphStyle("SeriesName", fontName="Helvetica", fontSize=10, textColor=AMBER)
+        ParagraphStyle("SeriesName", fontName=_font("Helvetica"), fontSize=10, textColor=AMBER)
     ))
     story.append(PageBreak())
 
@@ -153,7 +210,7 @@ def _get_script_styles():
 
     styles.add(ParagraphStyle(
         name="ScriptTitle",
-        fontName="Courier-Bold",
+        fontName=_font("Courier-Bold"),
         fontSize=16,
         leading=20,
         textColor=NAVY,
@@ -162,7 +219,7 @@ def _get_script_styles():
     ))
     styles.add(ParagraphStyle(
         name="CharacterName",
-        fontName="Courier-Bold",
+        fontName=_font("Courier-Bold"),
         fontSize=11,
         leading=14,
         textColor=NAVY,
@@ -172,7 +229,7 @@ def _get_script_styles():
     ))
     styles.add(ParagraphStyle(
         name="Dialogue",
-        fontName="Courier",
+        fontName=_font("Courier"),
         fontSize=10,
         leading=14,
         textColor=DARK_TEXT,
@@ -182,7 +239,7 @@ def _get_script_styles():
     ))
     styles.add(ParagraphStyle(
         name="Direction",
-        fontName="Courier-Oblique",
+        fontName=_font("Courier-Oblique"),
         fontSize=9,
         leading=12,
         textColor=MUTED,
@@ -191,7 +248,7 @@ def _get_script_styles():
     ))
     styles.add(ParagraphStyle(
         name="TimingMarker",
-        fontName="Courier",
+        fontName=_font("Courier"),
         fontSize=9,
         textColor=AMBER,
         alignment=TA_RIGHT,
@@ -253,7 +310,7 @@ def generate_script_pdf(title: str, script: str, output_path: str):
     story.append(Paragraph(title, styles["ScriptTitle"]))
     story.append(Paragraph(
         "The Grand Unified Theory of X &mdash; Podcast Script",
-        ParagraphStyle("ScriptSub", fontName="Courier", fontSize=10, textColor=MUTED, alignment=TA_CENTER)
+        ParagraphStyle("ScriptSub", fontName=_font("Courier"), fontSize=10, textColor=MUTED, alignment=TA_CENTER)
     ))
     story.append(Spacer(1, 24))
 
